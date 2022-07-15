@@ -1624,11 +1624,11 @@ contains
 ! whenever datmodyn starts using gocart, this will need to be a real value --
 ! see fvdycore for example
       if(associated(DUMMYAREA)) then
-          DUMMYAREA=1.0
+          DUMMYAREA=1e10   ! pretend 100 km grid
       end if
 
       if(associated(DUMMYDXC)) then
-          DUMMYDXC=1.0
+          DUMMYDXC=1e5
       end if
 
       if(associated(DUMMYW)) then
@@ -1640,7 +1640,7 @@ contains
       end if
 
       if(associated(DUMMYDYC)) then
-          DUMMYDYC=1.0
+          DUMMYDYC=1e5
       end if
 
 ! added to satisfy desires of da
@@ -1897,7 +1897,7 @@ contains
       TH = T * ( ( MAPL_P00 / PLO )**MAPL_KAPPA )
       OM = OMOBS
 
-      SPEED(:,:) = SQRT( U(:,:,LM)**2  + V(:,:,LM)**2 )
+      SPEED(:,:) = MAX( 0.1, SQRT( U(:,:,LM)**2  + V(:,:,LM)**2 ) )
       US(:,:)    = U(:,:,LM)
       VS(:,:)    = V(:,:,LM)
 
@@ -2020,7 +2020,7 @@ contains
          elseif (CFCSE .eq. 11) then
            zrel=2500.
            zrelp=3000.
-           qfloor=0.  !3.55e-3  ! not used in Blossey LES, but recommended for future
+           qfloor=3.55e-3  ! not used in Blossey LES, but recommended for future
          elseif (CFCSE .eq. 6) then
            zrel=4000.
            zrelp=4800.

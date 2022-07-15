@@ -3,6 +3,7 @@
 ! VERIFY_ and RETURN_ macros for error handling.
 
 #include "MAPL_Generic.h"
+!#define USE_SCM_SURF 1 
 
 !=============================================================================
 module GEOS_SuperdynGridCompMod
@@ -322,6 +323,32 @@ integer ::          ADV = -1
          CHILD_ID   = DYN,                                         &
                                                         RC=STATUS  )
     VERIFY_(STATUS)
+
+#ifdef USE_SCM_SURF
+    call MAPL_AddExportSpec ( GC   ,                               &
+         SHORT_NAME = 'SHOBS',                                     &
+         CHILD_ID   = DYN,                                         &
+                                                        RC=STATUS  )
+    VERIFY_(STATUS)
+
+   call MAPL_AddExportSpec ( GC   ,                               &
+         SHORT_NAME = 'LHOBS',                                     &
+         CHILD_ID   = DYN,                                         &
+                                                        RC=STATUS  )
+    VERIFY_(STATUS)
+
+    call MAPL_AddExportSpec ( GC   ,                               &
+         SHORT_NAME = 'TSKINOBS',                                     &
+         CHILD_ID   = DYN,                                         &
+                                                        RC=STATUS  )
+    VERIFY_(STATUS)
+
+    call MAPL_AddExportSpec ( GC   ,                               &
+         SHORT_NAME = 'QSKINOBS',                                     &
+         CHILD_ID   = DYN,                                         &
+                                                        RC=STATUS  )
+    VERIFY_(STATUS)
+#endif
 
     call MAPL_AddExportSpec ( GC   ,                               &
          SHORT_NAME = 'SPEED',                                     &

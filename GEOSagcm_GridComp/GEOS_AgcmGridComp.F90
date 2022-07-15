@@ -6,6 +6,7 @@
 #define FULLPHYSICS
 #define GCM
 #define debug 0
+!#define USE_SCM_SURF 1
 
 ! Held-Suarez is not in module GEOSGCM?????
 
@@ -966,7 +967,7 @@ contains
                                                         RC=STATUS  )
      VERIFY_(STATUS) 
 
-#ifdef SCMSURF
+#ifdef USE_SCM_SURF
     call MAPL_AddConnectivity ( GC,    &
          SHORT_NAME  = (/'TSKINOBS','QSKINOBS','LHOBS   ','SHOBS   '/), &
          DST_ID = PHYS,         &
