@@ -3039,6 +3039,7 @@ contains
      logical                             :: ALLOC_TCZPBL, CALC_TCZPBL
      logical                             :: ALLOC_ZPBL2, CALC_ZPBL2
      logical                             :: ALLOC_ZPBL10p, CALC_ZPBL10p
+     logical                             :: PDFALLOC
 
      real                                :: LOUIS, ALHFAC, ALMFAC
      real                                :: LAMBDAM, LAMBDAM2
@@ -3291,8 +3292,9 @@ contains
        call MAPL_GetResource (MAPL, SHOCPARAMS%CESFAC,   trim(COMP_NAME)//"_SHC_CESFAC:",       default=4.,   RC=STATUS)
        call MAPL_GetResource (MAPL, SHOCPARAMS%CLDLEN,   trim(COMP_NAME)//"_SHC_DO_CLDLEN:",    default=0.,   RC=STATUS)
        call MAPL_GetResource (MAPL, SHOCPARAMS%LENOPT,   trim(COMP_NAME)//"_SHC_LENOPT:",       default=1,    RC=STATUS)       
-       call MAPL_GetResource (MAPL, SHOCPARAMS%LENFAC,   trim(COMP_NAME)//"_SHC_LENFAC:",       default=3.0,  RC=STATUS)       
-       call MAPL_GetResource (MAPL, SHOCPARAMS%KRADFAC,   trim(COMP_NAME)//"_SHC_KRADFAC:",       default=0.0,  RC=STATUS)       
+       call MAPL_GetResource (MAPL, SHOCPARAMS%LENFAC1,  trim(COMP_NAME)//"_SHC_LENFAC1:",      default=3.0,  RC=STATUS)       
+       call MAPL_GetResource (MAPL, SHOCPARAMS%LENFAC2,  trim(COMP_NAME)//"_SHC_LENFAC2:",      default=3.0,  RC=STATUS)       
+       call MAPL_GetResource (MAPL, SHOCPARAMS%KRADFAC,  trim(COMP_NAME)//"_SHC_KRADFAC:",      default=0.0,  RC=STATUS)       
        call MAPL_GetResource (MAPL, SHOCPARAMS%BUOYOPT,  trim(COMP_NAME)//"_SHC_BUOY_OPTION:",  default=2,    RC=STATUS)
      end if
 
@@ -3305,6 +3307,8 @@ contains
 
 ! Get pointers from export state...
 !-----------------------------------
+
+     PDFALLOC = (PDFSHAPE.eq.5)
 
      call MAPL_GetPointer(EXPORT,      KH,      'KH', ALLOC=.TRUE., RC=STATUS)
      VERIFY_(STATUS)
@@ -3416,37 +3420,37 @@ contains
      VERIFY_(STATUS)
      call MAPL_GetPointer(EXPORT,  edmf_buoyf, 'EDMF_BUOYF',  RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  edmf_hl2,  'EDMF_HL2', ALLOC=.TRUE., RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  edmf_hl2,  'EDMF_HL2', RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  edmf_hlqt, 'EDMF_HLQT', ALLOC=.TRUE., RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  edmf_hlqt, 'EDMF_HLQT', RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  edmf_qt2,  'EDMF_QT2', ALLOC=.TRUE., RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  edmf_qt2,  'EDMF_QT2', RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  edmf_w2,   'EDMF_W2',      RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  edmf_w2,   'EDMF_W2', RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  edmf_w3,   'EDMF_W3',      RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  edmf_w3,   'EDMF_W3', RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  edmf_qt3,  'EDMF_QT3',     RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  edmf_qt3,  'EDMF_QT3', RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  edmf_hl3,  'EDMF_HL3',     RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  edmf_hl3,  'EDMF_HL3', RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  hlqt,  'HLQT', ALLOC=.TRUE.,   RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  hlqt,  'HLQT', ALLOC=PDFALLOC,   RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  w3,    'W3', ALLOC=.TRUE.,   RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  w3,    'W3', ALLOC=PDFALLOC,   RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  w2,    'W2', ALLOC=.TRUE.,   RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  w2,    'W2', ALLOC=PDFALLOC,   RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  hl3,   'HL3', ALLOC=.TRUE.,   RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  hl3,   'HL3', ALLOC=PDFALLOC,   RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  hl2,   'HL2', ALLOC=.TRUE.,   RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  hl2,   'HL2', ALLOC=PDFALLOC,   RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  wqt,   'WQT', ALLOC=.TRUE.,   RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  wqt,   'WQT', ALLOC=PDFALLOC,   RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  whl,   'WHL', ALLOC=.TRUE.,   RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  whl,   'WHL', ALLOC=PDFALLOC,   RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  edmf_wqt,    'EDMF_WQT', RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  edmf_wqt,    'EDMF_WQT', ALLOC=PDFALLOC, RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  edmf_whl,    'EDMF_WHL', RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  edmf_whl,    'EDMF_WHL', ALLOC=PDFALLOC, RC=STATUS)
      VERIFY_(STATUS)
      call MAPL_GetPointer(EXPORT,  edmf_mfx,    'EDMF_MF', RC=STATUS)
      VERIFY_(STATUS)
@@ -3456,7 +3460,7 @@ contains
      VERIFY_(STATUS)
      call MAPL_GetPointer(EXPORT,  edmf_moist_a, 'EDMF_MOIST_A',   RC=STATUS)
      VERIFY_(STATUS)
-     call MAPL_GetPointer(EXPORT,  EDMF_FRC,    'EDMF_FRC', ALLOC=.TRUE.,   RC=STATUS)
+     call MAPL_GetPointer(EXPORT,  EDMF_FRC,    'EDMF_FRC', ALLOC=PDFALLOC, RC=STATUS)
      VERIFY_(STATUS)
      call MAPL_GetPointer(EXPORT,  edmf_dry_u,  'EDMF_DRY_U',      RC=STATUS)
      VERIFY_(STATUS)
@@ -3830,9 +3834,9 @@ contains
     mfhl3  = 0.0
     mfwqt  = 0.0
     mfwhl  = 0.0
-    edmf_hl2  = 0.0
-    edmf_qt2  = 0.0
-    edmf_hlqt = 0.0
+!    edmf_hl2  = 0.0
+!    edmf_qt2  = 0.0
+!    edmf_hlqt = 0.0
 
     IF(DoMF /= 0) then
 
@@ -3852,7 +3856,7 @@ contains
                edmfdrythl, edmfmoistthl,      & ! diag
                edmfdryu, edmfmoistu,          & ! diag
                edmfdryv, edmfmoistv,          & ! diag
-               edmfmoistqc,                   & ! diag
+               edmfmoistqc, edmfzcld,         & ! diag
                buoyf, edmf_ent, edmf_mf,      & ! diag  
 #ifdef EDMF_DIAG
                w_plume1,w_plume2,w_plume3,w_plume4,w_plume5, &
@@ -4002,6 +4006,8 @@ contains
      
    ENDIF
 
+   
+
    call MAPL_TimerOff(MAPL,"---MASSFLUX")
 
 
@@ -4049,6 +4055,7 @@ contains
                        WTHV2(:,:,1:LM),       &
                        BUOYF(:,:,1:LM),       &
                        PRANDTLSHOC(:,:,1:LM), &
+                       EDMFZCLD,              &
                        !== Input-Outputs ==
                        TKESHOC(:,:,1:LM),     &
                        TKH(:,:,1:LM),         &
@@ -5701,6 +5708,7 @@ end subroutine RUN1
       real, dimension(IM,JM,LM)           :: DP, SX
       real, dimension(IM,JM,LM-1)         :: DF
       real, dimension(IM,JM,LM)           :: QT,SL,U,V,ZLO
+      real, allocatable                   :: tmp3d(:,:,:)
       integer, allocatable                :: KK(:)
       !  pointers to export of S after update
       real, dimension(:,:,:), pointer     :: SAFUPDATE
@@ -5719,6 +5727,7 @@ end subroutine RUN1
       real,  dimension(IM,JM)             :: LATS
       real                                :: SHVC_ALPHA, SHVC_EFFECT, scaling
       logical                             :: DO_SHVC
+      logical                             :: ALLOC_TMP
       integer                             :: KS
 
       ! For idealized SCM surface layer
@@ -5732,6 +5741,8 @@ end subroutine RUN1
 ! Pressure-weighted dissipation heating rates
 !--------------------------------------------
 
+      ALLOC_TMP = .FALSE.
+
       call MAPL_GetPointer(INTERNAL, TKH , 'TKH' , RC=STATUS); VERIFY_(STATUS)
 
       call MAPL_GetPointer(EXPORT, QTX      , 'QT'       , RC=STATUS); VERIFY_(STATUS)
@@ -5743,8 +5754,8 @@ end subroutine RUN1
 
       call MAPL_GetPointer(EXPORT, WHL,     'WHL'   , RC=STATUS); VERIFY_(STATUS)
       call MAPL_GetPointer(EXPORT, WQT,     'WQT'   , RC=STATUS); VERIFY_(STATUS)
-      call MAPL_GetPointer(EXPORT, MFWHL ,  'EDMF_WHL', RC=STATUS); VERIFY_(STATUS)
-      call MAPL_GetPointer(EXPORT, MFWQT ,  'EDMF_WQT', RC=STATUS); VERIFY_(STATUS)
+      if (associated(WHL)) call MAPL_GetPointer(EXPORT, MFWHL ,  'EDMF_WHL', ALLOC=.TRUE., RC=STATUS); VERIFY_(STATUS)
+      if (associated(WQT)) call MAPL_GetPointer(EXPORT, MFWQT ,  'EDMF_WQT', ALLOC=.TRUE., RC=STATUS); VERIFY_(STATUS)
       call MAPL_GetPointer(EXPORT, KETRB ,  'KETRB' , RC=STATUS); VERIFY_(STATUS)
       call MAPL_GetPointer(EXPORT, KESRF ,  'KESRF' , RC=STATUS); VERIFY_(STATUS)
       call MAPL_GetPointer(EXPORT, KETOP ,  'KETOP' , RC=STATUS); VERIFY_(STATUS)
@@ -5911,8 +5922,15 @@ end subroutine RUN1
          endwhere
       enddo
 
-      if (associated(QTFLXTRB).or.associated(QTX).or.associated(WQT)) QT = 0.0
-      if (associated(SLFLXTRB).or.associated(SLX).or.associated(WHL)) SL = 0.0
+      if (associated(QTFLXTRB).or.associated(QTX).or.associated(WQT)) then
+        QT = 0.0
+        ALLOC_TMP = .TRUE.
+      end if
+      if (associated(SLFLXTRB).or.associated(SLX).or.associated(WHL)) then
+        SL = 0.
+        ALLOC_TMP = .TRUE.
+      end if
+
       if (associated(UFLXTRB))  U = 0.0
       if (associated(VFLXTRB))  V = 0.0
 
@@ -6296,23 +6314,28 @@ end subroutine RUN1
 
       deallocate(KK)
 
+      if (ALLOC_TMP) allocate(tmp3d(IM,JM,0:LM))
+
       if (associated(QTX)) QTX = QT
       if (associated(SLX)) SLX = SL
 
       if (associated(QTFLXTRB).or.associated(WQT)) then
-         QTFLXTRB(:,:,1:LM-1) = (QT(:,:,1:LM-1)-QT(:,:,2:LM))/(ZLO(:,:,1:LM-1)-ZLO(:,:,2:LM))
-         QTFLXTRB(:,:,1:LM-1) = -1.*TKH(:,:,1:LM-1)*QTFLXTRB(:,:,1:LM-1)
-         QTFLXTRB(:,:,LM) = QTFLXTRB(:,:,LM-1)
-         QTFLXTRB(:,:,0) = 0.0
-         WQT = 0.5*( QTFLXTRB(:,:,1:LM)+QTFLXTRB(:,:,0:LM-1) + MFWQT(:,:,1:LM)+MFWQT(:,:,0:LM-1) ) 
+         tmp3d(:,:,1:LM-1) = (QT(:,:,1:LM-1)-QT(:,:,2:LM))/(ZLO(:,:,1:LM-1)-ZLO(:,:,2:LM))
+         tmp3d(:,:,1:LM-1) = -1.*TKH(:,:,1:LM-1)*tmp3d(:,:,1:LM-1)
+         tmp3d(:,:,LM) = tmp3d(:,:,LM-1)
+         tmp3d(:,:,0) = 0.0
+         if (associated(QTFLXTRB)) QTFLXTRB = tmp3d
+         if (associated(WQT)) WQT = 0.5*( tmp3d(:,:,1:LM)+tmp3d(:,:,0:LM-1) + MFWQT(:,:,1:LM)+MFWQT(:,:,0:LM-1) ) 
       end if
       if (associated(SLFLXTRB).or.associated(WHL)) then
-         SLFLXTRB(:,:,1:LM-1) = (SL(:,:,1:LM-1)-SL(:,:,2:LM))/(ZLO(:,:,1:LM-1)-ZLO(:,:,2:LM))
-         SLFLXTRB(:,:,1:LM-1) = -1.*TKH(:,:,1:LM-1)*SLFLXTRB(:,:,1:LM-1)
-         SLFLXTRB(:,:,LM) = SLFLXTRB(:,:,LM-1)
-         SLFLXTRB(:,:,0) = 0.0
-         WHL = 0.5*( (SLFLXTRB(:,:,1:LM)+SLFLXTRB(:,:,0:LM-1))/MAPL_CP + MFWHL(:,:,1:LM)+MFWHL(:,:,0:LM-1) ) 
+         tmp3d(:,:,1:LM-1) = (SL(:,:,1:LM-1)-SL(:,:,2:LM))/(ZLO(:,:,1:LM-1)-ZLO(:,:,2:LM))
+         tmp3d(:,:,1:LM-1) = -1.*TKH(:,:,1:LM-1)*tmp3d(:,:,1:LM-1)
+         tmp3d(:,:,LM) = tmp3d(:,:,LM-1)
+         tmp3d(:,:,0) = 0.0
+         if (associated(SLFLXTRB)) SLFLXTRB = tmp3d
+         if (associated(WHL)) WHL = 0.5*( (tmp3d(:,:,1:LM)+tmp3d(:,:,0:LM-1))/MAPL_CP + MFWHL(:,:,1:LM)+MFWHL(:,:,0:LM-1) )         
       end if
+      if (ALLOC_TMP) deallocate(tmp3d)
       if (associated(UFLXTRB)) then
          UFLXTRB(:,:,1:LM-1) = (U(:,:,1:LM-1)-U(:,:,2:LM))/(ZLO(:,:,1:LM-1)-ZLO(:,:,2:LM))
          UFLXTRB(:,:,1:LM-1) = -1.*TKH(:,:,1:LM-1)*UFLXTRB(:,:,1:LM-1)

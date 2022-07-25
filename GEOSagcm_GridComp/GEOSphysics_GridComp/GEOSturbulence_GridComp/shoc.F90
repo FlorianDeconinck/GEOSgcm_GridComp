@@ -37,7 +37,8 @@ module shoc
                  prsl_inv, phii_inv, phil_inv, u_inv, v_inv,     &  ! in
                  omega_inv,                                      &  ! in       
                  tabs_inv, qwv_inv, qi_inv, qc_inv, qpi_inv,     &  ! in 
-                 qpl_inv, cld_sgs_inv, dtdtrad, wthv_sec_inv, wthv_mf_inv, prnum, &  ! in
+                 qpl_inv, cld_sgs_inv, dtdtrad, wthv_sec_inv,    &  ! in
+                 wthv_mf_inv, prnum, mfdepth,                    &  ! in
                  tke_inv, tkh_inv,                               &  ! inout
                  isotropy_inv,                                   &  ! out
                  tkesbdiss_inv, tkesbbuoy_inv,                   &  ! out
@@ -93,6 +94,7 @@ module shoc
   real, intent(in   ) :: qpi_inv    (nx,ny,nzm) ! snow mixing ratio, kg/kg
   real, intent(in   ) :: cld_sgs_inv(nx,ny,nzm) ! sgs cloud fraction
   real, intent(in   ) :: dtdtrad    (nx,ny,nzm) ! radiative cooling tendency
+  real, intent(in   ) :: mfdepth    (nx,ny)     ! depth of MF
   real, intent(inout) :: tke_inv    (nx,ny,nzm) ! turbulent kinetic energy. m**2/s**2
   real, intent(inout) :: tkh_inv    (nx,ny,nzm) ! eddy diffusivity
   real, intent(inout) :: prnum      (nx,ny,nzm) ! turbulent Prandtl number
@@ -463,6 +465,8 @@ contains
 
           wrk1 = wrk / (prnum(i,j,k) + prnum(i,j,k-1))
 
+!          tkh(i,j,k) = 0.5*( smixt(i,j,k)*sqrt(tke(i,j,k)) &
+!                           + smixt(i,j,k-1)*sqrt(tke(i,j,k-1)) )
           tkh(i,j,k) = wrk1 * (isotropy(i,j,k) + isotropy(i,j,k-1))     &
                             * (tke(i,j,k)      + tke(i,j,k-1)) ! Eddy thermal diffusivity
           tkh(i,j,k) = min(tkh(i,j,k),tkhmax)
@@ -844,10 +848,10 @@ contains
 !                 end if
 !                 if (nx.eq.1 .and. zl(i,j,k).lt.1500.) print *,'zl=',zl(i,j,k),' lmix=',l_mix(i,j),' linf=',l_inf(i,j),' lpar=',l_par(i,j)
 !                 wrk2 = (0.1*l_inf(i,j))**2
-                 smixt1(i,j,k) = max(25.,sqrt(wrk1)*1.5*shocparams%LENFAC)
+                 smixt1(i,j,k) = max(25.,sqrt(wrk1)*1.5*shocparams%LENFAC1)
 !                 smixt1(i,j,k) = max(25.,vonk*zl(i,j,k)*shocparams%LENFAC)
-                 smixt2(i,j,k) = max(25.,0.7*l_par(i,j)*shocparams%LENFAC) !sqrt(wrk2)*3.3*shocparams%LENFAC
-                 smixt3(i,j,k) = max(25.,2.*tkes*shocparams%LENFAC/(sqrt(brunt_smooth(i,j,k))))   !sqrt(wrk3)*3.3*shocparams%LENFAC
+                 smixt2(i,j,k) = max(25.,0.7*l_par(i,j)*shocparams%LENFAC2) !sqrt(wrk2)*3.3*shocparams%LENFAC
+                 smixt3(i,j,k) = max(25.,2.*tkes*shocparams%LENFAC2/(sqrt(brunt_smooth(i,j,k))))   !sqrt(wrk3)*3.3*shocparams%LENFAC
 
                  if (shocparams%LENOPT .eq. 1) then 
                     smixt(i,j,k) = min(max_eddy_length_scale, min(smixt1(i,j,k),smixt3(i,j,k)) )
@@ -856,7 +860,7 @@ contains
                  else if (shocparams%LENOPT .eq. 3) then
                     wrk3 = tke(i,j,k) /(4. * brunt_smooth(i,j,k))
                     wrk1 = 1.0 / (1./wrk1 + 1./wrk2 + 1./wrk3)
-                    smixt(i,j,k) = min(max_eddy_length_scale, 3.3*sqrt(wrk1)*shocparams%LENFAC )
+                    smixt(i,j,k) = min(max_eddy_length_scale, 3.3*sqrt(wrk1)*shocparams%LENFAC2 )
                  end if
 !              endif
            else if (shocparams%LENOPT .eq. 4) then
@@ -876,12 +880,15 @@ contains
 !              smixt(i,j,k) = 9.4*(wrk1 + (vonk*zl(i,j,k)-wrk1)*exp(-zl(i,j,k)/(0.1*800.)))
 !              smixt(i,j,k) = 9.4*exp(-0.5*zl(i,j,k)/zdecay)*(wrk1 + (vonk*zl(i,j,k)-wrk1)*exp(-zl(i,j,k)/(0.1*800.)))
 !              smixt(i,j,k) = 9.4*exp(-2.0*max(0.,zl(i,j,k)-zcb(i,j)-200.)/zcb(i,j))*(wrk1 + (vonk*zl(i,j,k)-wrk1)*exp(-zl(i,j,k)/(0.1*800.)))
-              smixt(i,j,k) = 3.3*shocparams%LENFAC*(wrk1 + (vonk*zl(i,j,k)-wrk1)*exp(-zl(i,j,k)/(0.1*800.)))
-              smixt1(i,j,k) = 3.3*shocparams%LENFAC/wrk2
-              smixt2(i,j,k) = 3.3*shocparams%LENFAC/wrk3
-              smixt3(i,j,k) = 3.3*shocparams%LENFAC*vonk*zl(i,j,k)              
-           else
-
+              smixt(i,j,k) = 3.3*shocparams%LENFAC1*(wrk1 + (vonk*zl(i,j,k)-wrk1)*exp(-zl(i,j,k)/(0.1*800.)))
+              smixt1(i,j,k) = 3.3*shocparams%LENFAC1/wrk2
+              smixt2(i,j,k) = 3.3*shocparams%LENFAC1/wrk3
+              smixt3(i,j,k) = 3.3*shocparams%LENFAC1*vonk*zl(i,j,k)
+           else if (shocparams%LENOPT .eq. 5) then
+              smixt1(i,j,k) = 0.4*zl(i,j,k)*shocparams%LENFAC1
+              smixt2(i,j,k) = shocparams%LENFAC2*min(max(1.,mfdepth(i,j)/3.)*1e-6/brunt2(i,j,k),400.)*tkes  ! assume ustar=1 for now
+              smixt(i,j,k) = smixt2(i,j,k) + ( smixt1(i,j,k) - smixt2(i,j,k) )*exp(-0.01*zl(i,j,k))
+              smixt3(i,j,k) = MAPL_UNDEF
            end if
 
          smixt_outcld(i,j,k) = smixt(i,j,k)

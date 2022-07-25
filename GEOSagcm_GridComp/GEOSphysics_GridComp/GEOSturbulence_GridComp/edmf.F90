@@ -43,7 +43,7 @@ SUBROUTINE RUN_EDMF(its,ite,kts,kte,dt,phis, &
              dry_thl3,moist_thl3, &
              dry_u3,moist_u3, &
              dry_v3,moist_v3, &
-             moist_qc3, &
+             moist_qc3, edmfdepth, &
              buoyf, entx, edmfmf, &
 #ifdef EDMF_DIAG
              w_plume1,w_plume2,w_plume3,w_plume4,w_plume5, &
@@ -109,6 +109,7 @@ SUBROUTINE RUN_EDMF(its,ite,kts,kte,dt,phis, &
          REAL,DIMENSION(ITS:ITE,KTS:KTE), INTENT(OUT) :: buoyf,mfw2,mfw3,mfqt3,mfhl3,mfqt2,mfhl2,&
                                                          mfhlqt,entx !mfwhl,entx
       REAL, DIMENSION(ITS:ITE,KTS-1:KTE), INTENT(OUT) :: edmfmf, mfwhl, mfwqt
+      REAL, DIMENSION(ITS:ITE), INTENT(OUT) :: edmfdepth
 ! updraft properties
       REAL,DIMENSION(KTS-1:KTE,1:NUP) :: UPW,UPTHL,UPQT,UPQL,UPQI,UPA,UPU,UPV,UPTHV
  ! entrainment variables
@@ -267,6 +268,7 @@ wthv=wthl+mapl_epsilon*thv3(IH,kte)*wqt
  if (params%ET == 2 ) then
     pmid = 0.5*(pw3(IH,kts-1:kte-1)+pw3(IH,kts:kte))
     call calc_mf_depth(kts,kte,t3(IH,:),zlo3(IH,:),qv3(IH,:),pmid,ztop)
+    edmfdepth = ztop
     L0 = max(min(ztop,3000.),1000.) / params%L0fac
  else
     L0 = params%L0
