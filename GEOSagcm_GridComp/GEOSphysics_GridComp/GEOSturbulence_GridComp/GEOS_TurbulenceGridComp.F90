@@ -5708,7 +5708,7 @@ end subroutine RUN1
       real, dimension(IM,JM,LM)           :: DP, SX
       real, dimension(IM,JM,LM-1)         :: DF
       real, dimension(IM,JM,LM)           :: QT,SL,U,V,ZLO
-      real, allocatable                   :: tmp3d(:,:,:)
+      real, dimension(IM,JM,0:LM)         :: tmp3d
       integer, allocatable                :: KK(:)
       !  pointers to export of S after update
       real, dimension(:,:,:), pointer     :: SAFUPDATE
@@ -6314,7 +6314,7 @@ end subroutine RUN1
 
       deallocate(KK)
 
-      if (ALLOC_TMP) allocate(tmp3d(IM,JM,0:LM))
+!      if (ALLOC_TMP) allocate(tmp3d(IM,JM,0:LM))
 
       if (associated(QTX)) QTX = QT
       if (associated(SLX)) SLX = SL
@@ -6335,7 +6335,7 @@ end subroutine RUN1
          if (associated(SLFLXTRB)) SLFLXTRB = tmp3d
          if (associated(WHL)) WHL = 0.5*( (tmp3d(:,:,1:LM)+tmp3d(:,:,0:LM-1))/MAPL_CP + MFWHL(:,:,1:LM)+MFWHL(:,:,0:LM-1) )         
       end if
-      if (ALLOC_TMP) deallocate(tmp3d)
+!      if (ALLOC_TMP) deallocate(tmp3d)
       if (associated(UFLXTRB)) then
          UFLXTRB(:,:,1:LM-1) = (U(:,:,1:LM-1)-U(:,:,2:LM))/(ZLO(:,:,1:LM-1)-ZLO(:,:,2:LM))
          UFLXTRB(:,:,1:LM-1) = -1.*TKH(:,:,1:LM-1)*UFLXTRB(:,:,1:LM-1)

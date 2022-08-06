@@ -1977,6 +1977,7 @@ contains
    integer                             :: I, L, K, N
    integer                             :: IM, JM, LM, NQ
    integer                             :: ISPPT,ISKEB
+   integer                             :: ZERORAD
    logical                             :: DO_SPPT,DO_SKEB
    logical                             :: NEED_TOT
    logical                             :: NEED_FRI
@@ -2098,6 +2099,9 @@ contains
 
     call MAPL_TimerOn(STATE,"TOTAL")
     call MAPL_TimerOn(STATE,"RUN")
+
+    call MAPL_GetResource (STATE, ZERORAD, Label="ZERORAD:",DEFAULT=0, RC=STATUS)
+    VERIFY_(STATUS)
 
     call MAPL_GetResource(STATE, DUMMY, Label="DPEDT_PHYS:", default='YES', RC=STATUS)
     VERIFY_(STATUS)
@@ -2308,6 +2312,7 @@ contains
     if(associated(DTDT) .or. associated(DTDTRAD) .or. associated(DTDTTOT)) then
        call MAPL_GetPointer(GEX(RAD ) ,    TIR,    'DTDT', alloc=.true., RC=STATUS)
        VERIFY_(STATUS)
+       if (ZERORAD/=0) TIR = 0.
     end if
 
     if(associated(DTDT) .or. associated(TIF) .or. associated(DTDTTOT)) then

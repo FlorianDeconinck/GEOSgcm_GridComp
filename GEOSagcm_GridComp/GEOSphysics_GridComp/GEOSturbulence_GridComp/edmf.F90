@@ -267,7 +267,7 @@ wthv=wthl+mapl_epsilon*thv3(IH,kte)*wqt
 ! Estimate scale height for entrainment calculation
  if (params%ET == 2 ) then
     pmid = 0.5*(pw3(IH,kts-1:kte-1)+pw3(IH,kts:kte))
-    call calc_mf_depth(kts,kte,t3(IH,:),zlo3(IH,:),qv3(IH,:),pmid,ztop)
+    call calc_mf_depth(kts,kte,t3(IH,:),zlo3(IH,:)-zw3(IH,kte),qv3(IH,:),pmid,ztop)
     edmfdepth = ztop
     L0 = max(min(ztop,3000.),1000.) / params%L0fac
  else
@@ -280,7 +280,7 @@ wthv=wthl+mapl_epsilon*thv3(IH,kte)*wqt
 
 
   DO k=kts,kte
-      zlo(k)=zlo3(IH,kte-k+kts)
+      zlo(k)=zlo3(IH,kte-k+kts)-zw3(IH,kte)
       u(k)=u3(IH,kte-k+kts)
       v(k)=v3(IH,kte-k+kts)
       thl(k)=thl3(IH,kte-k+kts)
@@ -376,9 +376,9 @@ if (L0 .gt. 0. ) then
     enddo
    else if (PARAMS%ENTRAIN==1) then
     call Poisson(1,Nup,kts,kte,ENTf,ENTi,the_seed)
-    do i=1,Nup   ! Vary entrainment across updrafts
+    do i=1,Nup   ! Vary entrainment across updrafts, 0.5-1.5x
      do k=kts,kte
-       ENT(k,i) = (FLOAT((Nup-i)/Nup)+0.5)*( (1.-PARAMS%STOCHFRAC) * PARAMS%Ent0/L0 &
+       ENT(k,i) = ((FLOAT(Nup-i)/FLOAT(Nup))+0.5)*( (1.-PARAMS%STOCHFRAC) * PARAMS%Ent0/L0 &
                 + PARAMS%STOCHFRAC * real(ENTi(k,i))*PARAMS%Ent0/(ZW(k)-ZW(k-1)) ) !&
      enddo
     enddo
