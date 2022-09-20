@@ -1,4 +1,4 @@
-!#define EDMF_DIAG 1
+#define EDMF_DIAG 1
 module edmf_mod
 
 !
@@ -35,7 +35,7 @@ SUBROUTINE RUN_EDMF(its,ite,kts,kte,dt,phis, &
 !              mfsrcthl, mfsrcqt, mfw, mfarea, &
             ! outputs - variables needed for solver
              ae3,aw3,aws3,awqv3,awql3,awqi3,awu3,awv3, &
-             mfw2,mfw3,mfqt3,mfhl3,mfwqt,mfqt2,mfhl2,mfhlqt,mfwhl, &
+             mfw2,mfw3,mfqt3,mfhl3,mfwqt,mfqt2,mfhl2,mfhlqt,mfwhl,mftke, &
              ! outputs - updraft properties
              dry_a3,moist_a3, &
               dry_w3,moist_w3, &
@@ -108,7 +108,7 @@ SUBROUTINE RUN_EDMF(its,ite,kts,kte,dt,phis, &
    ! output - buoyancy flux: sum_i a_i*w_i*(thv_i-<thv>) ... for TKE equation
          REAL,DIMENSION(ITS:ITE,KTS:KTE), INTENT(OUT) :: buoyf,mfw2,mfw3,mfqt3,mfhl3,mfqt2,mfhl2,&
                                                          mfhlqt,entx !mfwhl,entx
-      REAL, DIMENSION(ITS:ITE,KTS-1:KTE), INTENT(OUT) :: edmfmf, mfwhl, mfwqt
+      REAL, DIMENSION(ITS:ITE,KTS-1:KTE), INTENT(OUT) :: edmfmf, mfwhl, mfwqt, mftke
       REAL, DIMENSION(ITS:ITE), INTENT(OUT) :: edmfdepth
 ! updraft properties
       REAL,DIMENSION(KTS-1:KTE,1:NUP) :: UPW,UPTHL,UPQT,UPQL,UPQI,UPA,UPU,UPV,UPTHV
@@ -147,7 +147,7 @@ SUBROUTINE RUN_EDMF(its,ite,kts,kte,dt,phis, &
  REAL,PARAMETER :: &
          Wa=1.5, &  ! buoyancy term
          Wb=1.      ! entrainment term
-!        Wa=1., &
+!        Wa=1., &    ! original
 !        Wb=1.5
 
 ! min values to avoid singularities
@@ -193,6 +193,7 @@ SUBROUTINE RUN_EDMF(its,ite,kts,kte,dt,phis, &
       mfhl2 =0.
       mfhlqt=0.
       mfwhl =0.
+      mftke =0.
       entx = 0.
       edmfmf=0.
 
@@ -370,16 +371,24 @@ if (L0 .gt. 0. ) then
      do k=kts,kte
        ENT(k,i) = (1.-PARAMS%STOCHFRAC) * PARAMS%Ent0/L0 &
                 + PARAMS%STOCHFRAC * real(ENTi(k,i))*PARAMS%Ent0/(ZW(k)-ZW(k-1)) !&
+!       if (ZW(k).lt.500.) then
+!          ENT(k,i) = real(ENTi(k,i))*PARAMS%Ent0/(ZW(k)-ZW(k-1))
+!       else
+!          ENT(k,i) = (1.-PARAMS%STOCHFRAC) * PARAMS%Ent0/L0 &
+!                   + PARAMS%STOCHFRAC * real(ENTi(k,i))*PARAMS%Ent0/(ZW(k)-ZW(k-1)) !&
+!       end if
 !                + 1.*tke3(ih,kte-k+kts)/L0
 !       ENT(k,i) = ENT(k,i) * (1000./max(ZW(k),500.))
+!       if (ZW(k).lt.500.) ENT(k,i) = 2.*ENT(k,i)
      enddo
     enddo
    else if (PARAMS%ENTRAIN==1) then
     call Poisson(1,Nup,kts,kte,ENTf,ENTi,the_seed)
-    do i=1,Nup   ! Vary entrainment across updrafts, 0.5-1.5x
+    do i=1,Nup   ! Vary entrainment across updrafts, 0.75-1.25x
      do k=kts,kte
-       ENT(k,i) = ((FLOAT(Nup-i)/FLOAT(Nup))+0.5)*( (1.-PARAMS%STOCHFRAC) * PARAMS%Ent0/L0 &
+       ENT(k,i) = ((FLOAT(Nup-i)*0.5/FLOAT(Nup))+0.75)*( (1.-PARAMS%STOCHFRAC) * PARAMS%Ent0/L0 &
                 + PARAMS%STOCHFRAC * real(ENTi(k,i))*PARAMS%Ent0/(ZW(k)-ZW(k-1)) ) !&
+!       if (ZW(k).lt.500.) ENT(k,i) = 2.*ENT(k,i)
      enddo
     enddo
    else if (PARAMS%ENTRAIN==2) then
@@ -453,8 +462,8 @@ end if
           UPQT(kts-1,I)=QT(kts)+MFSRCQT(IH,I)
           UPTHV(kts-1,I)=THV(kts)+MFSRCTHL(IH,I)
         else
-          UPQT(kts-1,I)=QT(kts)-(-1.**I)*0.32*UPW(kts-1,I)*sigmaQT/sigmaW
-!          UPQT(kts-1,I)=QT(kts)+0.32*UPW(kts-1,I)*sigmaQT/sigmaW
+!          UPQT(kts-1,I)=QT(kts)-(-1.**I)*0.32*UPW(kts-1,I)*sigmaQT/sigmaW
+          UPQT(kts-1,I)=QT(kts)+0.32*UPW(kts-1,I)*sigmaQT/sigmaW
           UPTHV(kts-1,I)=THV(kts)+0.58*UPW(kts-1,I)*sigmaTH/sigmaW
         end if
 
@@ -773,6 +782,7 @@ end if
              s_awqi(k) = s_awqi(K) + UPA(K,i)*UPW(K,I)*(UPQI(K,I) - QII(K))
           end if
           s_awqt(k)  = s_awqt(K)  + UPA(K,i)*UPW(K,I)*(UPQT(K,I) - QTI(K))
+          mftke(IH,k) = mftke(IH,k) + UPA(KTE+KTS-K-1,i)*0.5*UPW(KTE+KTS-K-1,I)*UPW(KTE+KTS-K-1,I)
          ENDDO
 
        DO k=KTS,KTE

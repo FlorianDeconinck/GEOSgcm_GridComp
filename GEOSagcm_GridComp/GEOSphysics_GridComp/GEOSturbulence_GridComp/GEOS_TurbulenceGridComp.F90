@@ -1,6 +1,6 @@
 !   $Id$
 
-!#define EDMF_DIAG 1
+#define EDMF_DIAG 1
 !#define USE_SCM_SURF 1
 
 #include "MAPL_Generic.h"
@@ -1094,6 +1094,15 @@ contains
        LONG_NAME  = 'edmf_liquid_static_energy_flux',                        &
        UNITS      = 'K s-1',                                                 &
        SHORT_NAME = 'EDMF_WHL'    ,                                          &
+       DIMS       = MAPL_DimsHorzVert,                                       &
+       VLOCATION  = MAPL_VLocationEdge,                                      &
+                                                                  RC=STATUS  )
+    VERIFY_(STATUS)
+
+    call MAPL_AddExportSpec(GC,                                              &
+       LONG_NAME  = 'edmf_turbulent_kinetic_energy',                         &
+       UNITS      = 'm2 s-2',                                                 &
+       SHORT_NAME = 'EDMF_TKE'    ,                                          &
        DIMS       = MAPL_DimsHorzVert,                                       &
        VLOCATION  = MAPL_VLocationEdge,                                      &
                                                                   RC=STATUS  )
@@ -3015,7 +3024,7 @@ contains
                                             edmf_w2, edmf_qt2, edmf_hl2, & 
                                             edmf_w3, edmf_wqt, edmf_hlqt, & 
                                             edmf_whl, edmf_qt3, edmf_hl3, &
-                                            edmf_entx
+                                            edmf_entx, edmf_tke
 
    real, dimension(IM,JM,0:LM)          ::  ae3,aw3,aws3,awqv3,awql3,awqi3,awu3,awv3
 
@@ -3102,7 +3111,7 @@ contains
                                     edmfmoistqc
      real, dimension(im,jm,lm)   :: zlo, pk, rho
      real, dimension(im,jm)      :: edmfZCLD
-     real, dimension(im,jm,0:lm) :: RHOE, RHOAW3, edmf_mf, mfwhl, mfwqt
+     real, dimension(im,jm,0:lm) :: RHOE, RHOAW3, edmf_mf, mfwhl, mfwqt, mftke
      real, dimension(im,jm,lm)   :: buoyf, mfw2, mfw3, mfqt3,     &
                                     mfhl3, mfqt2, mfhl2,   &
                                     mfhlqt, edmf_ent !mfwhl, edmf_ent
@@ -3451,6 +3460,8 @@ contains
      call MAPL_GetPointer(EXPORT,  edmf_wqt,    'EDMF_WQT', ALLOC=PDFALLOC, RC=STATUS)
      VERIFY_(STATUS)
      call MAPL_GetPointer(EXPORT,  edmf_whl,    'EDMF_WHL', ALLOC=PDFALLOC, RC=STATUS)
+     VERIFY_(STATUS)
+     call MAPL_GetPointer(EXPORT,  edmf_tke,    'EDMF_TKE', RC=STATUS)
      VERIFY_(STATUS)
      call MAPL_GetPointer(EXPORT,  edmf_mfx,    'EDMF_MF', RC=STATUS)
      VERIFY_(STATUS)
@@ -3834,6 +3845,7 @@ contains
     mfhl3  = 0.0
     mfwqt  = 0.0
     mfwhl  = 0.0
+    mftke  = 0.0
 !    edmf_hl2  = 0.0
 !    edmf_qt2  = 0.0
 !    edmf_hlqt = 0.0
@@ -3850,6 +3862,7 @@ contains
                awql3, awqi3, awu3, awv3,      & ! for trisolver
                mfw2,mfw3,mfqt3,mfhl3,mfwqt,   & ! for ADG PDF
                mfqt2, mfhl2, mfhlqt, mfwhl,   & ! for ADG PDF
+               mftke,                         &
                edmfdrya, edmfmoista,          & ! diag
                edmfdryw, edmfmoistw,          & ! diag
                edmfdryqt, edmfmoistqt,        & ! diag
@@ -3928,6 +3941,7 @@ contains
       if (associated(edmf_wqt))       edmf_wqt = mfwqt
       if (associated(edmf_hlqt))      edmf_hlqt = mfhlqt
       if (associated(edmf_whl))       edmf_whl = mfwhl
+      if (associated(edmf_tke))       edmf_tke = mftke
       EDMF_FRC = 0.5*(edmfdrya(:,:,0:LM-1)+edmfdrya(:,:,1:LM) + edmfmoista(:,:,0:LM-1)+edmfmoista(:,:,1:LM)) 
 
     ELSE            ! if there is no mass-flux
@@ -4001,9 +4015,10 @@ contains
       if (associated(edmf_wqt))       edmf_wqt      = mfwqt
       if (associated(edmf_hlqt))      edmf_hlqt     = mfhlqt
       if (associated(edmf_whl))       edmf_whl      = mfwhl
+      if (associated(edmf_tke))       edmf_tke      = mftke
      
-      EDMF_FRC = 0.
-     
+      EDMF_FRC = 0.     
+
    ENDIF
 
    
@@ -4056,6 +4071,7 @@ contains
                        BUOYF(:,:,1:LM),       &
                        PRANDTLSHOC(:,:,1:LM), &
                        EDMFZCLD,              &
+                       MFTKE,                 &
                        !== Input-Outputs ==
                        TKESHOC(:,:,1:LM),     &
                        TKH(:,:,1:LM),         &
@@ -5708,7 +5724,7 @@ end subroutine RUN1
       real, dimension(IM,JM,LM)           :: DP, SX
       real, dimension(IM,JM,LM-1)         :: DF
       real, dimension(IM,JM,LM)           :: QT,SL,U,V,ZLO
-      real, dimension(IM,JM,0:LM)         :: tmp3d
+      real, allocatable                   :: tmp3d(:,:,:)
       integer, allocatable                :: KK(:)
       !  pointers to export of S after update
       real, dimension(:,:,:), pointer     :: SAFUPDATE
@@ -6299,6 +6315,10 @@ end subroutine RUN1
           if(associated(SLFLXTRB).or.associated(SLX).or.associated(WHL)) SL = SL - MAPL_ALHL*SX
        endif
 
+       if( name=='QILS' .or. name=='QICN' ) then
+          if(associated(SLFLXTRB).or.associated(SLX).or.associated(WHL)) SL = SL - MAPL_ALHS*SX
+       endif
+
        if( name=='U' ) then
            if(associated(UFLXTRB)) U = U + SX
        end if
@@ -6314,7 +6334,7 @@ end subroutine RUN1
 
       deallocate(KK)
 
-!      if (ALLOC_TMP) allocate(tmp3d(IM,JM,0:LM))
+      if (ALLOC_TMP) allocate(tmp3d(IM,JM,0:LM))
 
       if (associated(QTX)) QTX = QT
       if (associated(SLX)) SLX = SL
@@ -6335,7 +6355,7 @@ end subroutine RUN1
          if (associated(SLFLXTRB)) SLFLXTRB = tmp3d
          if (associated(WHL)) WHL = 0.5*( (tmp3d(:,:,1:LM)+tmp3d(:,:,0:LM-1))/MAPL_CP + MFWHL(:,:,1:LM)+MFWHL(:,:,0:LM-1) )         
       end if
-!      if (ALLOC_TMP) deallocate(tmp3d)
+      if (ALLOC_TMP) deallocate(tmp3d)
       if (associated(UFLXTRB)) then
          UFLXTRB(:,:,1:LM-1) = (U(:,:,1:LM-1)-U(:,:,2:LM))/(ZLO(:,:,1:LM-1)-ZLO(:,:,2:LM))
          UFLXTRB(:,:,1:LM-1) = -1.*TKH(:,:,1:LM-1)*UFLXTRB(:,:,1:LM-1)

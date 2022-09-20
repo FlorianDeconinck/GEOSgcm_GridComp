@@ -950,6 +950,7 @@ module GEOSmoist_Process_Library
             if (n.ne.nmax) QCn = QCp + DQCALL *0.5
          endif
 
+         DQCALL = QCn - QCp
          QVn = QVp - DQCALL
          TEn = TEp + ((1.0-fQi)*alhlbcp + fQi*alhsbcp) * ( DQCALL*(1.-AF) + (QAn-QAp)*AF )
 
@@ -1289,8 +1290,6 @@ module GEOSmoist_Process_Library
    real, parameter :: rt_tol = 1.e-4
    real, parameter :: w_tol_sqd = 4.0e-04   ! Min vlaue of second moment of w
    real, parameter :: onebrvcp = 1.0/(rv*cp)
-   real, parameter :: skew_facw = 1.2
-   real, parameter :: skew_fact = 0.5
    real, parameter :: lsub = lcond+lfus
    real, parameter :: fac_cond = lcond/cp
    real, parameter :: fac_sub = lsub/cp

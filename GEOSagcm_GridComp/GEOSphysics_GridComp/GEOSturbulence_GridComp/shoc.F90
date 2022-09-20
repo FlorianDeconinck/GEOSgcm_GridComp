@@ -38,7 +38,7 @@ module shoc
                  omega_inv,                                      &  ! in       
                  tabs_inv, qwv_inv, qi_inv, qc_inv, qpi_inv,     &  ! in 
                  qpl_inv, cld_sgs_inv, dtdtrad, wthv_sec_inv,    &  ! in
-                 wthv_mf_inv, prnum, mfdepth,                    &  ! in
+                 wthv_mf_inv, prnum, mfdepth, tke_mf,            &  ! in
                  tke_inv, tkh_inv,                               &  ! inout
                  isotropy_inv,                                   &  ! out
                  tkesbdiss_inv, tkesbbuoy_inv,                   &  ! out
@@ -94,6 +94,7 @@ module shoc
   real, intent(in   ) :: qpi_inv    (nx,ny,nzm) ! snow mixing ratio, kg/kg
   real, intent(in   ) :: cld_sgs_inv(nx,ny,nzm) ! sgs cloud fraction
   real, intent(in   ) :: dtdtrad    (nx,ny,nzm) ! radiative cooling tendency
+  real, intent(in   ) :: tke_mf     (nx,ny,nz)  ! MF vertical velocity on edges, m/s
   real, intent(in   ) :: mfdepth    (nx,ny)     ! depth of MF
   real, intent(inout) :: tke_inv    (nx,ny,nzm) ! turbulent kinetic energy. m**2/s**2
   real, intent(inout) :: tkh_inv    (nx,ny,nzm) ! eddy diffusivity
@@ -341,7 +342,7 @@ contains
 
     real grd,betdz,Cek,Cee,lstarn, lstarp, bbb, omn, omp,qsatt,dqsat, smix,         &
          buoy_sgs,ratio,a_prod_sh,a_prod_bu,a_diss,a_prod_bu_debug, buoy_sgs_debug, &
-         tscale1, wrk, wrk1, wtke, wtk2, rdtn, dbuoy, krad
+         tscale1, wrk, wrk1, wtke, wtk2, rdtn, dbuoy, krad, tke_env
     integer i,j,k,ku,kd,itr
 
     rdtn = 1.0 / dtn
@@ -414,6 +415,7 @@ contains
 
           wrk   = 0.5 * wrk * (prnum(i,j,ku) + prnum(i,j,kd))
           a_prod_sh = min(min(tkhmax,(wrk+0.0001))*def2(i,j,k),0.001)    ! TKE shear production term
+!          a_prod_sh = min(tkhmax,(wrk+0.00001))*def2(i,j,k)    ! TKE shear production term
 
 ! Semi-implicitly integrate TKE equation forward in time
           wtke = tke(i,j,k)
@@ -462,13 +464,14 @@ contains
     do k=2,nzm
       do j=1,ny
         do i=1,nx
-
+          tke_env = max(min_tke,0.5*(tke(i,j,k)+tke(i,j,k-1))-tke_mf(i,j,nz-k+1))
           wrk1 = wrk / (prnum(i,j,k) + prnum(i,j,k-1))
 
 !          tkh(i,j,k) = 0.5*( smixt(i,j,k)*sqrt(tke(i,j,k)) &
 !                           + smixt(i,j,k-1)*sqrt(tke(i,j,k-1)) )
           tkh(i,j,k) = wrk1 * (isotropy(i,j,k) + isotropy(i,j,k-1))     &
-                            * (tke(i,j,k)      + tke(i,j,k-1)) ! Eddy thermal diffusivity
+                            * 2.*(tke_env) ! Eddy thermal diffusivity
+!                            * (tke(i,j,k)+tke(i,j,k-1)) ! Eddy thermal diffusivity
           tkh(i,j,k) = min(tkh(i,j,k),tkhmax)
         end do ! i
       end do ! j
@@ -755,8 +758,8 @@ contains
          brunt_smooth(:,:,1) = 1e-5
          brunt_smooth(:,:,nzm) = 1e-5
          do kk = 2,nzm-1   ! smooth 3-layers of brunt freq to reduce influence of single layers
-!            brunt_smooth(i,j,kk) = 0.333*brunt2(i,j,kk-1)+0.333*brunt2(i,j,kk)+0.334*brunt2(i,j,kk+1)
-            brunt_smooth(:,:,kk) = 0.25*brunt_dry(:,:,kk)+0.75*brunt_dry(:,:,kk+1)  ! level above, kk+1
+!            brunt_smooth(:,:,kk) = 0.333*brunt2(:,:,kk-1)+0.333*brunt2(:,:,kk)+0.334*brunt2(:,:,kk+1)
+            brunt_smooth(:,:,kk) = 0.333*brunt2(:,:,kk)+0.333*brunt2(:,:,kk+1)+0.334*brunt2(:,:,kk+2)  ! level above, kk+1
          end do
 
       do k=1,nzm       
@@ -851,7 +854,7 @@ contains
                  smixt1(i,j,k) = max(25.,sqrt(wrk1)*1.5*shocparams%LENFAC1)
 !                 smixt1(i,j,k) = max(25.,vonk*zl(i,j,k)*shocparams%LENFAC)
                  smixt2(i,j,k) = max(25.,0.7*l_par(i,j)*shocparams%LENFAC2) !sqrt(wrk2)*3.3*shocparams%LENFAC
-                 smixt3(i,j,k) = max(25.,2.*tkes*shocparams%LENFAC2/(sqrt(brunt_smooth(i,j,k))))   !sqrt(wrk3)*3.3*shocparams%LENFAC
+                 smixt3(i,j,k) = max(25.,2.*tkes*shocparams%LENFAC2/(sqrt(brunt_smooth(i,j,k)))) 
 
                  if (shocparams%LENOPT .eq. 1) then 
                     smixt(i,j,k) = min(max_eddy_length_scale, min(smixt1(i,j,k),smixt3(i,j,k)) )

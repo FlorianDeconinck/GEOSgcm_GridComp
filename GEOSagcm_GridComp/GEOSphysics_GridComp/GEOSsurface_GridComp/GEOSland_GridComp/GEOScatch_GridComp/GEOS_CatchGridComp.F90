@@ -4130,14 +4130,11 @@ subroutine RUN2 ( GC, IMPORT, EXPORT, CLOCK, RC )
         integer                       :: nv, nVars
         integer                       :: nDims,dimSizes(3)
         integer                       :: ldas_ens_id, ldas_first_ens_id
+        logical, save                 :: snow_first =.true.
+        integer                       :: unit_s
+        real, allocatable, save       :: MODIS_SNOW_ALBEDO(:)        
 
-        real, allocatable, save         :: MODIS_SNOW_ALBEDO(:)
-        character(len=ESMF_MAXSTR)      :: GRIDNAME
-        character(len=ESMF_MAXSTR)      :: ALBEDO_FILE
-        real, allocatable, dimension(:) :: global_alb
-        integer                         :: SNOW_ALBEDO_INFO
-        character(len=ESMF_MAXSTR)      :: SURFRC
-        type(ESMF_Config)               :: SCF 
+        character(len=ESMF_MAXSTR) :: GRIDNAME
 !#---
 
         ! --------------------------------------------------------------------------
@@ -4863,56 +4860,34 @@ subroutine RUN2 ( GC, IMPORT, EXPORT, CLOCK, RC )
                  SNOVR, SNONR, SNOVF, SNONF, &  ! instantaneous snow albedos on tiles
                  RCONSTIT, UUU, TPSN1OUT1, DRPAR, DFPAR)    
 
-        ! - borescan, 17 Feb 2022  - start snow albedo changes
-        ! Based on 20 years of MODIS Terra (MOD10A1) 
-        ! Use MODIS snow cover information to determine areas with 60% or more snow cover. (step1) 
-        ! Use top 10th percentile of snow albedo information from regions matching step1
-
-          call MAPL_GetResource (MAPL, SURFRC, label = 'SURFRC:', default = 'GEOS_SurfaceGridComp.rc', RC=STATUS) ; VERIFY_(STATUS)   
-          SCF = ESMF_ConfigCreate(rc=status) ; VERIFY_(STATUS)
-          call ESMF_ConfigLoadFile(SCF,SURFRC,rc=status) ; VERIFY_(STATUS)
-          call MAPL_GetResource ( SCF, SNOW_ALBEDO_INFO, Label="SNOW_ALBEDO_INFO:", &
-               DEFAULT=0, RC=STATUS) ; VERIFY_(STATUS)
-
-
-        if (SNOW_ALBEDO_INFO == 1)  then
-
-           call MAPL_GetResource(MAPL,GRIDNAME,'AGCM_GRIDNAME:', RC=STATUS)                      ; VERIFY_(STATUS)
+        if (snow_first) then
+           call MAPL_GetResource(MAPL,GRIDNAME,'AGCM_GRIDNAME:', RC=STATUS)
+           VERIFY_(STATUS)
            GRIDNAME =  AdjustL(GRIDNAME)
 
-           call MAPL_Get(MAPL, LocStream=LOCSTREAM, RC=STATUS)                                   ; VERIFY_(STATUS)
-           call MAPL_LocStreamGet(LOCSTREAM,  NT_GLOBAL=NT_GLOBAL, TILEGRID=TILEGRID, RC=STATUS) ; VERIFY_(STATUS)
-           call MAPL_TileMaskGet(tilegrid,  mask, rc=status)                                     ; VERIFY_(STATUS)
-
-           ALBEDO_FILE="/discover/nobackup/projects/gmao/osse2/stage/BCS_FILES/MODIS_snow_alb/MODIS_snow_alb_" // trim(GRIDNAME) // "_nel_Global.nc"
-           call InFmt%open(ALBEDO_FILE,pFIO_READ,rc=status) ; VERIFY_(status)
-           
-           allocate(global_alb(NT_GLOBAL),source =0.0)
-           if(.NOT. allocated (MODIS_SNOW_ALBEDO)) then
-             allocate(MODIS_SNOW_ALBEDO(NTILES), source = 0.0)
-           endif
-
-           if (MAPL_AM_I_Root(VM)) then
-             call MAPL_VarRead ( InFmt,"Snow_Albedo", global_alb)
-           endif
-           call ArrayScatter(MODIS_SNOW_ALBEDO, global_alb, tilegrid, mask=mask, rc=status) ; VERIFY_(STATUS)
-
-           call inFmt%close()
-
-           deallocate(global_alb)
-
+           snow_first = .false.
+           if(.NOT. allocated (MODIS_SNOW_ALBEDO)) allocate(MODIS_SNOW_ALBEDO(NTILES))
+           call MAPL_Get(MAPL, LocStream=LOCSTREAM, RC=STATUS)             ; VERIFY_(STATUS)
+           call MAPL_LocStreamGet(LOCSTREAM, TILEGRID=TILEGRID, RC=STATUS) ; VERIFY_(STATUS)
+           call MAPL_TileMaskGet(tilegrid,  mask, rc=status)               ; VERIFY_(STATUS)
+           unit_s = GETFILE( "/discover/nobackup/projects/gmao/osse2/stage/BCS_FILES/MODIS_snow_alb/MODIS_snow_alb_" // trim(GRIDNAME) // "_nel_Global.bin", &
+                             form="unformatted", RC=STATUS ) ; VERIFY_(STATUS)
+          !! Hard coded - must choose right resolution ( 720/360/180) !!
+          ! unit_s = GETFILE( "/discover/nobackup/borescan/for_AGCM_test/MODIS_snow_alb_CF0720x6C_DE1440xPE0720_nel_2496746_Global.bin", &
+          ! unit_s = GETFILE( "/discover/nobackup/borescan/for_AGCM_test/MODIS_snow_alb_CF0360x6C_DE1440xPE0720_nel_1188020_Global.bin", &
+          ! unit_s = GETFILE( "/discover/nobackup/borescan/for_AGCM_test/MODIS_snow_alb_CF0180x6C_DE1440xPE0720_nel_686448_Global.bin", &
+          !     form="unformatted", RC=STATUS ) ; VERIFY_(STATUS)
+           call MAPL_VarRead (unit_s, tilegrid,MODIS_SNOW_ALBEDO, mask=mask, rc=status) ; VERIFY_(STATUS)
+           call FREE_FILE(unit_s, RC=STATUS)  ; VERIFY_(STATUS)
         endif
 
-        where (MODIS_SNOW_ALBEDO > 0. .and. MODIS_SNOW_ALBEDO <= 1.)
+        where (MODIS_SNOW_ALBEDO > 0.)
            SNOVR = MODIS_SNOW_ALBEDO
            SNONR = MODIS_SNOW_ALBEDO
            SNOVF = MODIS_SNOW_ALBEDO
            SNONF = MODIS_SNOW_ALBEDO
         endwhere
-
-
-        ! borescan - end snow albedo changes 
-
+        
         ! --------------------------------------------------------------------------
         ! albedo/swnet partitioning
         ! --------------------------------------------------------------------------
@@ -5591,13 +5566,13 @@ subroutine RUN2 ( GC, IMPORT, EXPORT, CLOCK, RC )
                  SNOVR, SNONR, SNOVF, SNONF, & ! instantaneous snow albedos on tiles
                  RCONSTIT, UUU, TPSN1OUT1,DRPAR, DFPAR)   
 
-        where (MODIS_SNOW_ALBEDO > 0. .and. MODIS_SNOW_ALBEDO <= 1.)
+        where (MODIS_SNOW_ALBEDO > 0.)
            SNOVR = MODIS_SNOW_ALBEDO
            SNONR = MODIS_SNOW_ALBEDO
            SNOVF = MODIS_SNOW_ALBEDO
            SNONF = MODIS_SNOW_ALBEDO
         endwhere
-
+        
         ALBVR   = ALBVR    *(1.-ASNOW) + SNOVR    *ASNOW
         ALBVF   = ALBVF    *(1.-ASNOW) + SNOVF    *ASNOW
         ALBNR   = ALBNR    *(1.-ASNOW) + SNONR    *ASNOW
