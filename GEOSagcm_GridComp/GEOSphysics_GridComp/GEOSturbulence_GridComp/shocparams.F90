@@ -3,8 +3,7 @@ module SHOCPARAMS
  implicit none
 
  type SHOCPARAMS_TYPE
-    integer :: CLDLEN
-    integer :: SUS12LEN
+    integer :: LENOPT
     integer :: BUOYOPT
     real    :: LAMBDA
     real    :: TSCALE
@@ -12,6 +11,11 @@ module SHOCPARAMS
     real    :: CKVAL
     real    :: CEFAC
     real    :: CESFAC
+    real    :: LENFAC1
+    real    :: LENFAC2
+    real    :: KRADFAC
+    real    :: CLDLEN
+    real    :: BRUNTMIN
  endtype SHOCPARAMS_TYPE
 
 end module SHOCPARAMS
