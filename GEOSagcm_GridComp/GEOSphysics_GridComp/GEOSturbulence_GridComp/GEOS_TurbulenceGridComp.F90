@@ -2570,14 +2570,14 @@ contains
        VLOCATION  = MAPL_VLocationCenter,               RC=STATUS  )
     VERIFY_(STATUS)
 
-    call MAPL_AddInternalSpec(GC,                                &
-       SHORT_NAME = 'QVCORRECT',                                 &
-       LONG_NAME  = 'correction_for_EDMF_flux_issue',            &
-       UNITS      = 'kg kg-1',                                   &
-       DEFAULT    = 0.0,                                         &
-       DIMS       = MAPL_DimsHorzVert,                           &
-       VLOCATION  = MAPL_VLocationCenter,               RC=STATUS  )
-    VERIFY_(STATUS)
+!    call MAPL_AddInternalSpec(GC,                                &
+!       SHORT_NAME = 'QVCORRECT',                                 &
+!       LONG_NAME  = 'correction_for_EDMF_flux_issue',            &
+!       UNITS      = 'kg kg-1',                                   &
+!       DEFAULT    = 0.0,                                         &
+!       DIMS       = MAPL_DimsHorzVert,                           &
+!       VLOCATION  = MAPL_VLocationCenter,               RC=STATUS  )
+!    VERIFY_(STATUS)
 
 !EOS
 
@@ -2765,14 +2765,14 @@ contains
     VERIFY_(STATUS)
 
 ! Get grid name to determine IMSIZE
-    call MAPL_GetResource(MAPL,GRIDNAME,'AGCM_GRIDNAME:', RC=STATUS)
-    VERIFY_(STATUS)
-    GRIDNAME =  AdjustL(GRIDNAME)
-    nn = len_trim(GRIDNAME)
-    dateline = GRIDNAME(nn-1:nn)
-    imchar = GRIDNAME(3:index(GRIDNAME,'x')-1)
-    read(imchar,*) imsize
-    if(dateline.eq.'CF') imsize = imsize*4
+!    call MAPL_GetResource(MAPL,GRIDNAME,'AGCM_GRIDNAME:', RC=STATUS)
+!    VERIFY_(STATUS)
+!    GRIDNAME =  AdjustL(GRIDNAME)
+!    nn = len_trim(GRIDNAME)
+!    dateline = GRIDNAME(nn-1:nn)
+!    imchar = GRIDNAME(3:index(GRIDNAME,'x')-1)
+!    read(imchar,*) imsize
+!    if(dateline.eq.'CF') imsize = imsize*4
 
 ! Get all pointers that are needed by both REFRESH and DIFFUSE
 !-------------------------------------------------------------
@@ -3705,7 +3705,7 @@ contains
       call MAPL_TimerOn(MAPL,"---PRELIMS")
 
       do L=0,LM
-         ZL0(:,:,L) = ZLE(:,:,L) - ZLE(:,:,LM) ! height above the surface 
+         ZL0(:,:,L) = ZLE(:,:,L) - ZLE(:,:,LM) ! edge height above the surface 
       enddo
 
       ! Layer height, pressure, and virtual temperatures
@@ -3714,7 +3714,7 @@ contains
       QL  = QLTOT
       QI  = QITOT
       QA  = QCTOT
-      Z   = 0.5*(ZL0(:,:,0:LM-1)+ZL0(:,:,1:LM))
+      Z   = 0.5*(ZL0(:,:,0:LM-1)+ZL0(:,:,1:LM)) ! layer height above surface
       PLO = 0.5*(PLE(:,:,0:LM-1)+PLE(:,:,1:LM))
 
       if (associated(ZLS))  ZLS = Z
@@ -5816,7 +5816,7 @@ end subroutine RUN1
       real, dimension(:,:,:), pointer     :: QTFLXTRB, SLFLXTRB, WHL, WQT, MFWHL, &
                                              MFWQT, TKH, UFLXTRB, VFLXTRB, QTX, SLX, &
                                              SLFLXMF, QTFLXMF, MFAW
-      real, dimension(:,:,:), pointer     :: QVCORRECT
+!      real, dimension(:,:,:), pointer     :: QVCORRECT
 
       integer                             :: KM, K, L, I, J
       logical                             :: FRIENDLY
@@ -5861,7 +5861,7 @@ end subroutine RUN1
       ALLOC_TMP = .FALSE.
 
       call MAPL_GetPointer(INTERNAL, TKH , 'TKH' , RC=STATUS); VERIFY_(STATUS)
-      call MAPL_GetPointer(INTERNAL, QVCORRECT , 'QVCORRECT' , RC=STATUS); VERIFY_(STATUS)
+!      call MAPL_GetPointer(INTERNAL, QVCORRECT , 'QVCORRECT' , RC=STATUS); VERIFY_(STATUS)
 
       call MAPL_GetPointer(EXPORT, QTX      , 'QT'       , RC=STATUS); VERIFY_(STATUS)
       call MAPL_GetPointer(EXPORT, SLX      , 'SL'       , RC=STATUS); VERIFY_(STATUS)
@@ -6397,16 +6397,16 @@ end subroutine RUN1
           if(associated(QTFLXTRB).or.associated(QTX)) QT = QT + SX
        endif
 
-       if( name=='QLLS' ) then
-!          print *,'name = QLLS'
-          if (ANY( SX.lt.0. )) then
-!             print *,'QLLS=',SX
-             qvcorrect = min(SX,0.)
-             SX = max(SX,0.)
-             print *,'QVCORRECT=',QVCORRECT
-          end if
-       end if     
-       if(name=='Q') SX = SX+qvcorrect
+!       if( name=='QLLS' ) then
+!!          print *,'name = QLLS'
+!          if (ANY( SX.lt.0. )) then
+!!             print *,'QLLS=',SX
+!             qvcorrect = min(SX,0.)
+!             SX = max(SX,0.)
+!             print *,'QVCORRECT=',QVCORRECT
+!          end if
+!       end if     
+!       if(name=='Q') SX = SX+qvcorrect
 
        if( name=='S' ) then
            if(associated(SLFLXTRB).or.associated(SLX).or.associated(WHL)) SL = SL + SX
