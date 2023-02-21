@@ -1,4 +1,4 @@
-#define EDMF_DIAG 1
+!#define EDMF_DIAG 1
 module edmf_mod
 
 !
@@ -139,7 +139,7 @@ SUBROUTINE RUN_EDMF(its,ite,kts,kte,dt,phis, &
         REAL,DIMENSION(KTS-1:KTE) :: exfh,tmp1d
         REAL,DIMENSION(KTS-1:KTE) :: rhoe
 
-        REAL :: L0,ztop,tmp,ltm,MFsrf,QTsrfF,THVsrfF,mft,mfthvt,mf,factor
+        REAL :: L0,ztop,tmp,ltm,MFsrf,QTsrfF,THVsrfF,mft,mfthvt,mf,factor,lts
         INTEGER, DIMENSION(2) :: seedmf,the_seed
 
 
@@ -196,7 +196,7 @@ SUBROUTINE RUN_EDMF(its,ite,kts,kte,dt,phis, &
       mfhlqt=0.
       mfwhl =0.
       mftke =0.
-      entx = 0.
+      entx = mapl_undef
       edmfmf=0.
 
    ! this is the environmental area - by default 1.
@@ -272,13 +272,26 @@ wthv=wthl+mapl_epsilon*thv3(IH,kte)*wqt
     pmid = 0.5*(pw3(IH,kts-1:kte-1)+pw3(IH,kts:kte))
     call calc_mf_depth(kts,kte,t3(IH,:),zlo3(IH,:)-zw3(IH,kte),qv3(IH,:),pmid,ztop,wthv,wqt)
     edmfdepth(IH) = (1.-DT/1800.)*edmfdepth(IH) + (DT/1800.)*ztop
-    L0 = max(min(edmfdepth(IH),3000.),1000.) / params%L0fac
- else if (params%ET == 3 ) then
-    L0 = max(min(edmfdepth(IH),3000.),1000.) / params%L0fac
+    L0 = max(min(edmfdepth(IH),3000.),500.) / params%L0fac
+
+    ! Reduce L0 over ocean where LTS > 18 to encourage StCu formation
+    lts =  0.0
+    if (FRLAND(IH)<0.5) then
+       do k = kte-1,kts+1,-1
+          if (zlo3(IH,k)-zw3(IH,kte).gt.3000.0) then
+             lts = thv3(IH,k+1)
+             exit
+          end if
+       end do
+       lts = lts - thv3(IH,kte)
+       L0 = L0/(1.5+0.5*TANH(lts-18.))  ! reduce L0 by half for LTS > 18
+    end if 
+else if (params%ET == 3 ) then
+    L0 = max(min(edmfdepth(IH),3000.),500.) / params%L0fac
  else
     L0 = params%L0
  end if  
- print *,'L0=',L0 
+! print *,'L0=',L0 
 !
 ! flipping variables (GEOS5)
 !
@@ -436,7 +449,7 @@ end if
  !
    wstar=max(wstarmin,(mapl_grav/300.*wthv*pblh)**(1./3.))  ! convective velocity scale
    qstar=max(0.,wqt)/wstar
-   thstar=max(0.,wthv)/wstar
+   thstar=max(0.01,wthv)/wstar
 
    sigmaW=PARAMS%AlphaW*wstar
    sigmaQT=PARAMS%AlphaQT*qstar
@@ -887,7 +900,7 @@ subroutine calc_mf_depth(kts,kte,t,z,q,p,ztop,wthv,wqt)
    sigmaQT=1.0*qstar
    sigmaTH=2.0*thstar
 
- print *,'sigQT=',sigmaQT,'  sigTH=',sigmaTH
+! print *,'sigQT=',sigmaQT,'  sigTH=',sigmaTH
 
   tep  = t(kte)+max(0.1,sigmaTH) ! parcel values
   qp   = q(kte)+sigmaQT

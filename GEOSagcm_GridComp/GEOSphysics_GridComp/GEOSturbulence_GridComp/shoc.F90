@@ -772,8 +772,8 @@ contains
 
          brunt_dry = max( bruntmin, brunt_dry )
 
-         brunt_smooth(:,:,1) = bruntmin
-         brunt_smooth(:,:,nzm) = bruntmin
+         brunt_smooth(:,:,1) = brunt2(:,:,1)
+         brunt_smooth(:,:,nzm) = brunt2(:,:,nzm-1)
          do kk = 2,nzm-1   ! smooth 3-layers of brunt freq to reduce influence of single layers
 !            brunt_smooth(:,:,kk) = brunt2(:,:,kk)
             brunt_smooth(:,:,kk) = 0.333*brunt2(:,:,kk-1)+0.333*brunt2(:,:,kk)+0.334*brunt2(:,:,kk+1)
@@ -877,7 +877,11 @@ contains
 !                 smixt3(i,j,k) = max(25.,shocparams&LENFAC2*20.*sqrt(500.-((zl(i,j,k)-500.)/24.)**2))
 
                  if (shocparams%LENOPT .eq. 1) then 
-                    smixt(i,j,k) = min(max_eddy_length_scale, min(smixt1(i,j,k),smixt3(i,j,k)) )
+!                    if (brunt_smooth(i,j,k).gt.bruntmin) then
+                      smixt(i,j,k) = min(max_eddy_length_scale, min(smixt1(i,j,k),smixt3(i,j,k)) )
+!                    else
+!                      smixt(i,j,k) = min(max_eddy_length_scale, smixt1(i,j,k) )
+!                    end if
                  else if (shocparams%LENOPT .eq. 2) then
                     smixt(i,j,k) = min(max_eddy_length_scale, min(smixt1(i,j,k),smixt2(i,j,k)) )
                  else if (shocparams%LENOPT .eq. 3) then
