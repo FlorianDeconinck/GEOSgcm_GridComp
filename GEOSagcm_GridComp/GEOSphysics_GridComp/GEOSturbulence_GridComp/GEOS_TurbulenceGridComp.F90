@@ -3870,7 +3870,7 @@ contains
        call surface_layer(IM, JM, LM, &
                           SCM_SL_FLUX, SCM_Z0, &
                           zpbl, ssurf_scm, qsurf_scm, &
-                          z, zle, ple, rhoe, u, v, T, q, thv, &
+                          z, zl0, ple, rhoe, u, v, T, q, thv, &
                           sh_scm, evap_scm, zeta_scm, &
                           ustar_scm, cu_scm, ct_scm)
 
@@ -3911,7 +3911,7 @@ contains
     IF(DoMF /= 0) then
 
       call RUN_EDMF(1, IM*JM, 1, LM, DT,      & ! in
-               PHIS, Z, ZLE, PLE, RHOE, TKESHOC,       & ! in
+               PHIS, Z, ZL0, PLE, RHOE, TKESHOC,       & ! in
                NUMUP, U, V, T, THL, THV, QT,  & ! in
                Q, QL, QI, USTAR,              & ! in
                SH, EVAP, frland, zpbl,        & ! in
@@ -4116,7 +4116,7 @@ contains
                        !== Inputs ==
                        DT/DMI(:,:,1:LM),      &
                        PLO(:,:,1:LM),         &
-                       ZLE(:,:,0:LM),         &
+                       ZL0(:,:,0:LM),         &
                        Z(:,:,1:LM),           &
                        U(:,:,1:LM),           &
                        V(:,:,1:LM),           &
