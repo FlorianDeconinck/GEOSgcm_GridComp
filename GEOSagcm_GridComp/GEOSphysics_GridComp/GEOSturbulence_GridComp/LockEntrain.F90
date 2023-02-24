@@ -119,6 +119,7 @@ module LockEntrain
    REAL, ALLOCATABLE, DIMENSION(:,:  ), DEVICE :: FRLAND_dev
    REAL, ALLOCATABLE, DIMENSION(:,:  ), DEVICE :: EVAP_dev
    REAL, ALLOCATABLE, DIMENSION(:,:  ), DEVICE :: SH_dev
+   REAL, ALLOCATABLE, DIMENSION(:,:  ), DEVICE :: ZPBL_dev
    REAL, ALLOCATABLE, DIMENSION(:,:,:), DEVICE :: T_dev
    REAL, ALLOCATABLE, DIMENSION(:,:,:), DEVICE :: QV_dev
    REAL, ALLOCATABLE, DIMENSION(:,:,:), DEVICE :: QL_dev
@@ -143,6 +144,8 @@ module LockEntrain
    REAL, ALLOCATABLE, DIMENSION(:,:,:), DEVICE :: K_T_ENTR_dev
    REAL, ALLOCATABLE, DIMENSION(:,:,:), DEVICE :: K_SFC_dev
    REAL, ALLOCATABLE, DIMENSION(:,:,:), DEVICE :: K_RAD_dev
+   REAL, ALLOCATABLE, DIMENSION(:,:,:), DEVICE :: TPERT_dev
+   REAL, ALLOCATABLE, DIMENSION(:,:,:), DEVICE :: QPERT_dev
    REAL, ALLOCATABLE, DIMENSION(:,:  ), DEVICE :: ZCLOUD_dev
    REAL, ALLOCATABLE, DIMENSION(:,:  ), DEVICE :: ZRADML_dev
    REAL, ALLOCATABLE, DIMENSION(:,:  ), DEVICE :: ZRADBASE_dev
@@ -303,6 +306,7 @@ contains
          frland,         &
          evap,           &
          sh,             &
+         zpbl,           &
          t,              &
          qv,             &
          qlls,           &
@@ -325,6 +329,8 @@ contains
          zradml,         &
          zradbase,       &
          zsml,           &
+         tpert,          &
+         qpert,          &
 ! Diagnostics
          zcldtop_diag,   &
          wentr_sfc_diag, &
@@ -474,14 +480,14 @@ contains
       real,    value,  intent(in) :: pceff_sfc,khsfcfac_lnd,khsfcfac_ocn
 
       real,    device, intent(in),    dimension(icol,jcol,nlev)      :: tdtlw_in       
-      real,    device, intent(in),    dimension(icol,jcol)           :: u_star,b_star,frland,evap,sh
+      real,    device, intent(in),    dimension(icol,jcol)           :: u_star,b_star,frland,evap,sh,zpbl
       real,    device, intent(in),    dimension(icol,jcol,nlev)      :: t,qv,qlls,qils
       real,    device, intent(in),    dimension(icol,jcol,nlev)      :: u,v,zfull,pfull
       real,    device, intent(in),    dimension(icol,jcol,1:nlev+1)  :: zhalf, phalf ! 0:72 in GC, 1:73 here.
       real,    device, intent(inout), dimension(icol,jcol,1:nlev+1)  :: diff_m,diff_t
       real,    device, intent(out),   dimension(icol,jcol,1:nlev+1)  :: k_m_entr,k_t_entr
       real,    device, intent(out),   dimension(icol,jcol,1:nlev+1)  :: k_rad,k_sfc
-      real,    device, intent(out),   dimension(icol,jcol)           :: zsml,zradml,zcloud,zradbase
+      real,    device, intent(out),   dimension(icol,jcol)           :: zsml,zradml,zcloud,zradbase,tpert,qpert
 
       real,    device, pointer, dimension(:,:) :: wentr_rad_diag, wentr_sfc_diag ,del_buoy_diag
       real,    device, pointer, dimension(:,:) :: vrad_diag, kentrad_diag,vbrv_diag,wentr_brv_diag
@@ -492,14 +498,14 @@ contains
       integer, intent(in)                                    :: icol,jcol,nlev
 
       real,    intent(in),    dimension(icol,jcol,nlev)      :: tdtlw_in       
-      real,    intent(in),    dimension(icol,jcol)           :: u_star,b_star,frland,evap,sh
+      real,    intent(in),    dimension(icol,jcol)           :: u_star,b_star,frland,evap,sh,zpbl
       real,    intent(in),    dimension(icol,jcol,nlev)      :: t,qv,qlls,qils
       real,    intent(in),    dimension(icol,jcol,nlev)      :: u,v,zfull,pfull
       real,    intent(in),    dimension(icol,jcol,1:nlev+1)  :: zhalf, phalf ! 0:72 in GC, 1:73 here.
       real,    intent(inout), dimension(icol,jcol,1:nlev+1)  :: diff_m,diff_t
       real,    intent(out),   dimension(icol,jcol,1:nlev+1)  :: k_m_entr,k_t_entr
       real,    intent(out),   dimension(icol,jcol,1:nlev+1)  :: k_rad,k_sfc
-      real,    intent(out),   dimension(icol,jcol)           :: zsml,zradml,zcloud,zradbase
+      real,    intent(out),   dimension(icol,jcol)           :: zsml,zradml,zcloud,zradbase,tpert,qpert
 
       real,    intent(in) :: prandtlsfc,prandtlrad,beta_surf,beta_rad
       real,    intent(in) :: khradfac,tpfac_sfc,entrate_sfc, vscale_sfc, pertopt_sfc
@@ -720,6 +726,9 @@ contains
                   u_star,           &
                   evap,             &
                   sh,               &
+                  zpbl,             &
+                  tpert,            &
+                  qpert,            &
                   ipbl,zsml         )
 
 !------------------------------------------------------
@@ -1207,7 +1216,7 @@ contains
 #ifdef _CUDA
    attributes(device) &
 #endif
-   subroutine mpbl_depth(i,j,icol,jcol,nlev,tpfac, entrate, pceff, vscale, pertopt, t, q, u, v, z, p, b_star, u_star , evap, sh, ipbl, ztop )
+   subroutine mpbl_depth(i,j,icol,jcol,nlev,tpfac, entrate, pceff, vscale, pertopt, t, q, u, v, z, p, b_star, u_star , evap, sh, zpbl, tpert, qpert, ipbl, ztop )
 
 !
 !  -----
@@ -1235,10 +1244,10 @@ contains
 
       integer, intent(in   )                            :: i, j, nlev, icol, jcol
       real,    intent(in   ), dimension(icol,jcol,nlev) :: t, z, q, p, u, v
-      real,    intent(in   ), dimension(icol,jcol)      :: b_star, u_star, evap, sh
+      real,    intent(in   ), dimension(icol,jcol)      :: b_star, u_star, evap, sh, zpbl
       real,    intent(in   )                            :: tpfac, entrate, pceff, vscale, pertopt
       integer, intent(  out)                            :: ipbl
-      real,    intent(  out),dimension(icol,jcol)       :: ztop
+      real,    intent(  out),dimension(icol,jcol)       :: ztop,tpert,qpert
 
 
       real     :: tep,z1,z2,t1,t2,qp,pp,qsp,dqp,dqsp,u1,v1,u2,v2,du
@@ -1255,17 +1264,20 @@ contains
       zrho = p(i,j,nlev)/(287.04*(t(i,j,nlev)*(1.+0.608*q(i,j,nlev))))
 
       buoyflx = (sh(i,j)/MAPL_CP+0.608*t(i,j,nlev)*evap(i,j))/zrho ! K m s-1                                                                                                  
-      delzg = (50.0)*MAPL_GRAV   ! assume 50m surface scale                                                                                                               
-      wstar = max(0.,0.001+0.41*buoyflx*delzg/t(i,j,nlev)) ! m3 s-3      
+      delzg = 0.1*zpbl(i,j)*MAPL_GRAV
+
+      wstar = 0.001+0.41*buoyflx*delzg/t(i,j,nlev) ! m3 s-3      
+
 
       if (wstar > 0.001) then
         wstar = 1.0*wstar**.3333
 !        print *,'sh=',sh(i,j),'evap=',evap(i,j),'wstar=',wstar
-        tep  = t(i,j,nlev) + 0.4 + 2.*sh(i,j)/(zrho*wstar*MAPL_CP)
-        qp   = q(i,j,nlev) + 2.*evap(i,j)/(zrho*wstar)
+        tep  = t(i,j,nlev) + 0.4 + 1.5*max(0.,sh(i,j))/(zrho*wstar*MAPL_CP)
+        qp   = q(i,j,nlev) + 2.*max(0.,evap(i,j))/(zrho*wstar)
 !        print *,'tpert=',2.*sh(i,j)/(zrho*wstar*MAPL_CP)
       else
-
+        tep = t(i,j,nlev) + 0.4
+        qp = q(i,j,nlev)
       end if
     else   ! tpfac scales up bstar by inv. ratio of
            ! heat-bubble area to stagnant area
@@ -1276,6 +1288,8 @@ contains
       end if
       qp   = q(i,j,nlev)
     end if
+    tpert(i,j) = tep - t(i,j,nlev)
+    qpert(i,j) = qp  - q(i,j,nlev)
 
 !--------------------------------------------
 ! wind dependence of plume character. 

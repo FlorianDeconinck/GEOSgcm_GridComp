@@ -1676,6 +1676,24 @@ contains
     VERIFY_(STATUS)
 
     call MAPL_AddExportSpec(GC,                                              &
+       LONG_NAME  = 'temperature_perturbation_for_sfc_plume_LOCK',           &
+       UNITS      = 'K',                                                     &
+       SHORT_NAME = 'TPERT',                                                 &
+       DIMS       = MAPL_DimsHorzOnly,                                       &
+       VLOCATION  = MAPL_VLocationNone,                                      &
+                                                                  RC=STATUS  )
+    VERIFY_(STATUS)
+
+    call MAPL_AddExportSpec(GC,                                              &
+       LONG_NAME  = 'humidity_perturbation_for_sfc_plume_LOCK',           &
+       UNITS      = 'kg kg-1',                                               &
+       SHORT_NAME = 'QPERT',                                                 &
+       DIMS       = MAPL_DimsHorzOnly,                                       &
+       VLOCATION  = MAPL_VLocationNone,                                      &
+                                                                  RC=STATUS  )
+    VERIFY_(STATUS)
+
+    call MAPL_AddExportSpec(GC,                                              &
        LONG_NAME  = 'depth_for_rad/brv_plume_LOCK',                          &
        UNITS      = 'm',                                                     &
        SHORT_NAME = 'ZRADML',                                                &
@@ -3055,7 +3073,7 @@ contains
 
 !     real, dimension(:,:,:), pointer     :: MFQTSRC, MFTHSRC, MFW, MFAREA
      real, dimension(:,:,:), pointer     :: EKH, EKM, KHLS, KMLS, KHRAD, KHSFC
-     real, dimension(:,:  ), pointer     :: BSTAR, USTAR, PPBL, WERAD, WESFC,VSCRAD,KERAD,DBUOY,ZSML,ZCLD,ZRADML,FRLAND
+     real, dimension(:,:  ), pointer     :: BSTAR, USTAR, PPBL, WERAD, WESFC,VSCRAD,KERAD,DBUOY,ZSML,TPERT,QPERT,ZCLD,ZRADML,FRLAND
      real, dimension(:,:  ), pointer     :: TCZPBL => null()
      real, dimension(:,:  ), pointer     :: ZPBL2 => null()
      real, dimension(:,:  ), pointer     :: ZPBL10P => null()
@@ -3448,6 +3466,10 @@ contains
      call MAPL_GetPointer(EXPORT,    ZCLD,    'ZCLD', ALLOC=.TRUE., RC=STATUS)
      VERIFY_(STATUS)
      call MAPL_GetPointer(EXPORT,    ZSML,    'ZSML', ALLOC=.TRUE., RC=STATUS)
+     VERIFY_(STATUS)
+     call MAPL_GetPointer(EXPORT,   TPERT,   'TPERT', ALLOC=.TRUE., RC=STATUS)
+     VERIFY_(STATUS)
+     call MAPL_GetPointer(EXPORT,   QPERT,   'QPERT', ALLOC=.TRUE., RC=STATUS)
      VERIFY_(STATUS)
      call MAPL_GetPointer(EXPORT,  ZRADML,  'ZRADML', ALLOC=.TRUE., RC=STATUS)
      VERIFY_(STATUS)
@@ -4272,6 +4294,8 @@ contains
          ALLOCATE(ZRADML_dev(IM,JM), __STAT__)
          ALLOCATE(ZRADBASE_dev(IM,JM), __STAT__)
          ALLOCATE(ZSML_dev(IM,JM), __STAT__)
+         ALLOCATE(TPERT_dev(IM,JM), __STAT__)
+         ALLOCATE(QPERT_dev(IM,JM), __STAT__)
 
          ! Diagnostics - Lock
          ! ------------------
@@ -4333,6 +4357,7 @@ contains
                   FRLAND_dev   = FRLAND
                   EVAP_dev     = EVAP
                   SH_dev       = SH
+                  ZPBL_dev     = ZPBL
                   T_dev        = T
                   QV_dev       = Q
                   QL_dev       = QLTOT
@@ -4362,6 +4387,7 @@ contains
                                       FRLAND_dev,     &
                                       EVAP_dev,       &
                                       SH_dev,         &
+                                      ZPBL_dev,       &
                                       T_dev,          &
                                       QV_dev,         &
                                       QL_dev,         &
@@ -4384,6 +4410,8 @@ contains
                                       ZRADML_dev,     &
                                       ZRADBASE_dev,   &
                                       ZSML_dev,       &
+                                      TPERT_dev,      &
+                                      QPERT_dev,      &
                                       ! Diagnostics
                                       ZCLDTOP_DIAG_dev_ptr, &
                                       WENTR_SFC_DIAG_dev_ptr, &
@@ -4443,7 +4471,9 @@ contains
                   ZRADML = ZRADML_dev
                   ZRADBS = ZRADBASE_dev
                   ZSML   = ZSML_dev
-      
+                  TPERT  = TPERT_dev
+                  QPERT  = QPERT_dev
+
          ! Diagnostics - Lock
          ! ------------------
       
@@ -4508,6 +4538,8 @@ contains
          DEALLOCATE(ZRADML_dev)
          DEALLOCATE(ZRADBASE_dev)
          DEALLOCATE(ZSML_dev)
+         DEALLOCATE(TPERT_dev)
+         DEALLOCATE(QPERT_dev)
       
          ! Diagnostics - Lock
          ! ------------------
@@ -4566,6 +4598,7 @@ contains
                       FRLAND,                   &
                       EVAP,                     &
                       SH,                       &
+                      ZPBL,                     &
                       T,                        &
                       Q,                        &
                       QLTOT,                    &
@@ -4589,6 +4622,8 @@ contains
                       ZRADBS,                   &
                       ZSML,                     &
                       ! Diagnostics
+                      TPERT,                    &
+                      QPERT,                    &
                       ZCLDTOP,                  &
                       WESFC,                    &
                       WERAD,                    &
@@ -6675,6 +6710,7 @@ end subroutine RUN1
 
       pbllocal = ZPBL
       where ( pbllocal .LE. ZZ(:,:,LM) ) pbllocal = ZZ(:,:,LM)
+      where ( pbllocal .GT. 2500. ) pbllocal = 2500.
 
 !===>   Quantities needed for Richardson number
 
