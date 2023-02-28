@@ -164,6 +164,16 @@ contains
 
 ! !IMPORT STATE:
 
+     call MAPL_AddImportSpec(GC,                             &
+        SHORT_NAME         = 'VARFLT',                            &
+        LONG_NAME          = 'variance_of_filtered_topography',   &
+        UNITS              = 'm+2',                               &
+        DIMS               = MAPL_DimsHorzOnly,                   &
+        VLOCATION          = MAPL_VLocationNone,                  &
+        RESTART            = MAPL_RestartSkip,                    &
+                                                       RC=STATUS  )
+     VERIFY_(STATUS)
+
     call MAPL_AddImportSpec(GC,                               &
          SHORT_NAME ='DTDT',                                       &
          LONG_NAME  ='T_tendency',                                 &
@@ -601,7 +611,8 @@ contains
          UNITS     ='K',                                            &
          DIMS      = MAPL_DimsHorzOnly,                             &
          VLOCATION = MAPL_VLocationNone,                            &
-                                                        __RC__  )
+                                                       __RC__  )
+
  !-srf-gf-scheme
     call MAPL_AddExportSpec(GC,                                                    &
          SHORT_NAME = 'DYNF_Q',                                                    &
@@ -831,6 +842,14 @@ contains
        SHORT_NAME         = 'TROPP_BLENDED',                                             &
        LONG_NAME          = 'tropopause_pressure_based_on_blended_estimate',             &
        UNITS              = 'Pa',                                                        &
+       DIMS               = MAPL_DimsHorzOnly,                                           &
+       VLOCATION          = MAPL_VLocationNone,                                __RC__ )
+    
+
+    call MAPL_AddExportSpec ( gc,                                                        &
+       SHORT_NAME         = 'TROPK_BLENDED',                                             &
+       LONG_NAME          = 'tropopause_based_on_blended_estimate',             &
+       UNITS              = '1',                                                        &
        DIMS               = MAPL_DimsHorzOnly,                                           &
        VLOCATION          = MAPL_VLocationNone,                                __RC__ )
     
