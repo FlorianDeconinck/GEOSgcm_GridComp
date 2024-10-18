@@ -1,5 +1,5 @@
 import os
-from typing import TYPE_CHECKING, Dict, List
+from typing import Dict, List
 
 import numpy as np
 from mpi4py import MPI
@@ -11,10 +11,8 @@ from pyMoist.interface.cuda_profiler import CUDAProfiler, TimedCUDAProfiler
 from pyMoist.interface.f_py_conversion import FortranPythonConversion
 from pyMoist.interface.flags import flags_fv_to_python
 from pyMoist.interface.wrapper import GEOSPyMoistWrapper, MemorySpace
-
-
-if TYPE_CHECKING:
-    import cffi
+from MAPLpyish.api import MAPLBridge
+from _cffi_backend import _CDataBase as CFFIObj
 
 
 class PYMOIST_WRAPPER:
@@ -23,12 +21,14 @@ class PYMOIST_WRAPPER:
 
     def init(
         self,
-        fv_flags: "cffi.FFI.CData",
+        fv_flags: CFFIObj,
+        aero_state: CFFIObj,
         backend: str = "dace:cpu",
     ) -> None:
         self.rank = MPI.COMM_WORLD.Get_rank()
         self.backend = backend
         self.flags = flags_fv_to_python(fv_flags)
+        self.aero_state = aero_state
         print(f"Moist Flags:\n{self.flags}")
         # For Fortran<->NumPy conversion
         if is_gpu_backend(self.backend):
@@ -44,6 +44,8 @@ class PYMOIST_WRAPPER:
             numpy_module,
         )
 
+        self.MAPL_bridge = MAPLBridge()
+
         # Setup pyFV3's dynamical core
         self.pymoist = GEOSPyMoistWrapper(self.flags, backend)
 
@@ -58,25 +60,29 @@ class PYMOIST_WRAPPER:
 
     def aer_activation(
         self,
-        f_aero_dgn: "cffi.FFI.CData",
-        f_aero_num: "cffi.FFI.CData",
-        f_aero_hygroscopicity: "cffi.FFI.CData",
-        f_aero_sigma: "cffi.FFI.CData",
-        f_frland: "cffi.FFI.CData",
+        f_aero_dgn: CFFIObj,
+        f_aero_num: CFFIObj,
+        f_aero_hygroscopicity: CFFIObj,
+        f_aero_sigma: CFFIObj,
+        f_frland: CFFIObj,
         f_nn_ocean: np.float32,
         f_nn_land: np.float32,
-        f_t: "cffi.FFI.CData",
-        f_plo: "cffi.FFI.CData",
-        f_qicn: "cffi.FFI.CData",
-        f_qils: "cffi.FFI.CData",
-        f_qlcn: "cffi.FFI.CData",
-        f_qlls: "cffi.FFI.CData",
-        f_vvel: "cffi.FFI.CData",
-        f_tke: "cffi.FFI.CData",
-        f_nacti: "cffi.FFI.CData",
-        f_nwfa: "cffi.FFI.CData",
-        f_nactl: "cffi.FFI.CData",
+        f_t: CFFIObj,
+        f_plo: CFFIObj,
+        f_qicn: CFFIObj,
+        f_qils: CFFIObj,
+        f_qlcn: CFFIObj,
+        f_qlls: CFFIObj,
+        f_vvel: CFFIObj,
+        f_tke: CFFIObj,
+        f_nacti: CFFIObj,
+        f_nwfa: CFFIObj,
+        f_nactl: CFFIObj,
     ):
+        n_modes = self.MAPL_bridge.ESMF_AttributeGet(
+            self.aero_state, name="number_of_aerosol_modes"
+        )
+        print(f">>>> NMODES: {n_modes}")
         CUDAProfiler.start_cuda_profiler()
         with TimedCUDAProfiler("Fortran -> Python", self._timings):
             aero_dgn = self.f_py.fortran_to_python(
@@ -180,24 +186,24 @@ WRAPPER = PYMOIST_WRAPPER()
 
 
 def pyMoist_run_AerActivation(
-    aero_dgn: "cffi.FFI.CData",
-    aero_num: "cffi.FFI.CData",
-    aero_hygroscopicity: "cffi.FFI.CData",
-    aero_sigma: "cffi.FFI.CData",
-    frland: "cffi.FFI.CData",
+    aero_dgn: CFFIObj,
+    aero_num: CFFIObj,
+    aero_hygroscopicity: CFFIObj,
+    aero_sigma: CFFIObj,
+    frland: CFFIObj,
     nn_ocean: np.float32,
     nn_land: np.float32,
-    t: "cffi.FFI.CData",
-    plo: "cffi.FFI.CData",
-    qicn: "cffi.FFI.CData",
-    qils: "cffi.FFI.CData",
-    qlcn: "cffi.FFI.CData",
-    qlls: "cffi.FFI.CData",
-    vvel: "cffi.FFI.CData",
-    tke: "cffi.FFI.CData",
-    nacti: "cffi.FFI.CData",
-    nwfa: "cffi.FFI.CData",
-    nactl: "cffi.FFI.CData",
+    t: CFFIObj,
+    plo: CFFIObj,
+    qicn: CFFIObj,
+    qils: CFFIObj,
+    qlcn: CFFIObj,
+    qlls: CFFIObj,
+    vvel: CFFIObj,
+    tke: CFFIObj,
+    nacti: CFFIObj,
+    nwfa: CFFIObj,
+    nactl: CFFIObj,
 ):
     if not WRAPPER.ready:
         raise RuntimeError("[GEOS WRAPPER] Bad init, did you call init?")
@@ -228,12 +234,13 @@ def pyMoist_finalize():
         WRAPPER.finalize()
 
 
-def pyMoist_init(fv_flags: "cffi.FFI.CData"):
+def pyMoist_init(fv_flags: CFFIObj, aero_state: CFFIObj):
     # Read in the backend
     BACKEND = os.environ.get("GEOS_PYFV3_BACKEND", "dace:cpu")
     if WRAPPER.ready:
         raise RuntimeError("[PYMOIST WRAPPER] Double init")
     WRAPPER.init(
         fv_flags=fv_flags,
+        aero_state=aero_state,
         backend=BACKEND,
     )

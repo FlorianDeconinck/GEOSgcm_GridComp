@@ -30,7 +30,7 @@ typedef union
 	void *comm_ptr;
 } MPI_Comm_t;
 
-extern int pymoist_interface_py_init(moist_flags_t *flags);
+extern int pymoist_interface_py_init(moist_flags_t *flags, void *state);
 
 extern int pymoist_interface_py_run_AerActivation(
 	// input

@@ -1,6 +1,6 @@
 module pymoist_interface_mod
 
-   use iso_c_binding, only: c_int, c_float, c_double, c_bool
+   use iso_c_binding, only: c_int, c_float, c_double, c_bool, c_ptr
 
    implicit none
 
@@ -32,12 +32,13 @@ module pymoist_interface_mod
 
    interface
 
-      subroutine pymoist_interface_f_init( moist_flags) bind(c, name='pymoist_interface_c_init')
+      subroutine pymoist_interface_f_init(moist_flags, aero_state) bind(c, name='pymoist_interface_c_init')
 
-         import c_int, c_float, c_double, moist_flags_interface_type
+         import c_int, c_float, c_double, moist_flags_interface_type, c_ptr
 
          implicit none
          type(moist_flags_interface_type), intent(in) :: moist_flags
+         type(c_ptr), intent(in) :: aero_state
 
       end subroutine pymoist_interface_f_init
 

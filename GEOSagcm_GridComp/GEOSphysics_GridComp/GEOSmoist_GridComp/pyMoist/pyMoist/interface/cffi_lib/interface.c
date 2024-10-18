@@ -2,7 +2,7 @@
 #include <time.h>
 #include "moist.h"
 
-extern int pymoist_interface_c_init(moist_flags_t *flags)
+extern int pymoist_interface_c_init(moist_flags_t *flags, void *aero_state)
 {
 	// Check magic number
 	if (flags->mn_123456789 != 123456789)
@@ -11,7 +11,7 @@ extern int pymoist_interface_c_init(moist_flags_t *flags)
 		exit(-1);
 	}
 
-	int return_code = pymoist_interface_py_init(flags);
+	int return_code = pymoist_interface_py_init(flags, aero_state);
 
 	if (return_code < 0)
 	{

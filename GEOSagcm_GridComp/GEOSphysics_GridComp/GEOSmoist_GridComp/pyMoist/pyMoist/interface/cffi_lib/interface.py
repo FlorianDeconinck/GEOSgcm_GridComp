@@ -19,15 +19,15 @@ from mpi4py import MPI
 from pyMoist.interface.python_bridge import (
     pyMoist_init,
     pyMoist_run_AerActivation,
-    pyMoist_finalize
+    pyMoist_finalize,
 )
 import traceback
 
 @ffi.def_extern()
-def pymoist_interface_py_init(flags) -> int:
+def pymoist_interface_py_init(flags, state) -> int:
 
     try:
-        pyMoist_init(flags)
+        pyMoist_init(flags, state)
     except Exception as err:
         print("Error in Python:")
         print(traceback.format_exc())
@@ -67,9 +67,7 @@ def pymoist_interface_py_finalize() -> int:
         return -1
     return 0
 
-""".format(
-    TMPFILEBASE
-)
+""".format(TMPFILEBASE)
 
 with open("moist.h") as f:
     data = "".join([line for line in f if not line.startswith("#")])
