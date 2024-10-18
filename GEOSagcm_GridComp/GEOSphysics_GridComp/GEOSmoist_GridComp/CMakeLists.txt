@@ -131,10 +131,12 @@ endif ()
 if (BUILD_PYMOIST_INTERFACE)
   esma_add_library (${this}
     SRCS ${srcs}
+    SUBCOMPONENTS MAPLpyish
     DEPENDENCIES pymoist_interface_py GEOS_Shared GMAO_mpeu MAPL Chem_Shared Chem_Base esmf)
 else ()
   esma_add_library (${this}
     SRCS ${srcs}
+    SUBCOMPONENTS MAPLpyish
     DEPENDENCIES GEOS_Shared GMAO_mpeu MAPL Chem_Shared Chem_Base esmf)
 endif ()
 
