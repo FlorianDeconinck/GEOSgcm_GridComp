@@ -82,7 +82,27 @@ class PYMOIST_WRAPPER:
         n_modes = self.MAPL_bridge.ESMF_AttributeGet(
             self.aero_state, name="number_of_aerosol_modes"
         )
+        self.MAPL_bridge.ESMF_MethodExecute(
+            self.aero_state, label="aerosol_activation_properties"
+        )
+        f_aero_sigma_from_MAPL = self.f_py._ffi.cast(
+            "float*",
+            self.MAPL_bridge.MAPL_GetPointer_via_ESMFAttr(
+                self.aero_state,
+                "width_of_aerosol_mode",
+            ),
+        )
         print(f">>>> NMODES: {n_modes}")
+        print(f">>>> AERO_NUM p: {f_aero_sigma_from_MAPL}")
+        new_sigma_mode_14 = self.f_py.fortran_to_python(
+            f_aero_sigma_from_MAPL,
+            [
+                self.flags.npx,
+                self.flags.npy,
+                self.flags.npz,
+            ],
+        )
+        print(f">>>> AERO_NUM c: {new_sigma_mode_14}")
         CUDAProfiler.start_cuda_profiler()
         with TimedCUDAProfiler("Fortran -> Python", self._timings):
             aero_dgn = self.f_py.fortran_to_python(
@@ -121,7 +141,9 @@ class PYMOIST_WRAPPER:
                     self.flags.n_modes,
                 ],
             )
-
+            print(
+                f">>>> AERO_NUM Vs AERO_NUM: {np.all(new_sigma_mode_14 == aero_sigma[:,:,:,13])}"
+            )
             frland = self.f_py.fortran_to_python(
                 f_frland, [self.flags.npx, self.flags.npy]
             )
