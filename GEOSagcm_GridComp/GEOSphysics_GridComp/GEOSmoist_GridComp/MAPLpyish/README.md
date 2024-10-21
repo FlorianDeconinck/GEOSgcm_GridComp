@@ -1,5 +1,10 @@
 # Exposing MAPL to python
 
+## [Dev] TODO
+
+- [ ] Make `scalar` and `pointer` interfaces. Scalars should probably be broken down further into types. Pointer can all go through `c_ptr`. As bridle as it is to go through blind pointer, we don't have a way ATM to enforce typing throughout
+- [ ] Refactor: use `cffi` API mode rather ABI to enhance safety and portability
+
 ## Strategy
 
 ### Fortran <-> C
