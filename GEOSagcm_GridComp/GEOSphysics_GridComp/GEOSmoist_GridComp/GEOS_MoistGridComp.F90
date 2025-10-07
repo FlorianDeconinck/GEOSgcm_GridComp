@@ -143,6 +143,9 @@ contains
     call MAPL_GridCompSetEntryPoint ( GC, ESMF_METHOD_RUN,  Run, RC=status )
     VERIFY_(STATUS)
 
+    call MAPL_GridCompSetEntryPoint ( GC,  ESMF_METHOD_FINALIZE,  FINALIZE, RC=status )
+    VERIFY_(STATUS)
+
     ! Get the configuration from the component
     !-----------------------------------------
     call ESMF_GridCompGet( GC, CONFIG = CF, RC=STATUS )
@@ -6137,6 +6140,23 @@ contains
     RETURN_(ESMF_SUCCESS)
 
   end subroutine RUN
+
+subroutine Finalize(gc, import, export, clock, rc)
+     type(ESMF_GridComp), intent(inout) :: gc     ! Gridded component
+     type(ESMF_State),    intent(inout) :: import ! Import state
+     type(ESMF_State),    intent(inout) :: export ! Export state
+     type(ESMF_Clock),    intent(inout) :: clock  ! The clock
+     integer, optional,   intent(  out) :: rc     ! Error code
+
+     PRINT *, "Moist.Finalize()"
+
+#ifdef PYMOIST_INTEGRATION
+     call pymoist_interface_f_finalize()
+#endif
+
+     call MAPL_GenericFinalize(gc, import, export, clock, rc)
+
+end subroutine Finalize
 
 end module GEOS_MoistGridCompMod
 
