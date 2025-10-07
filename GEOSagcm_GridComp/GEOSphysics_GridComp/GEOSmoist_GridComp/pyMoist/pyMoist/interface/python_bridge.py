@@ -116,7 +116,9 @@ class PYMOIST_WRAPPER:
                 ],
             )
 
-            frland = self.f_py.fortran_to_python(f_frland, [self.flags.npx, self.flags.npy])
+            frland = self.f_py.fortran_to_python(
+                f_frland, [self.flags.npx, self.flags.npy]
+            )
 
             t = self.f_py.fortran_to_python(f_t)
             plo = self.f_py.fortran_to_python(f_plo)
@@ -254,82 +256,102 @@ class PYMOIST_WRAPPER:
         CUDAProfiler.start_cuda_profiler()
 
         with TimedCUDAProfiler("[UW] Fortran -> Python", self._timings):
-            in_pifc0_inv = self.f_py.fortran_to_python(
+            self.pymoist.UW_state.pifc0_inv.field[:] = self.f_py.fortran_to_python(
                 f_pifc0_inv,
                 [self.flags.npx, self.flags.npy, self.flags.npz + 1],
-            )
-            in_zifc0_inv = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.zifc0_inv.field[:] = self.f_py.fortran_to_python(
                 f_zifc0_inv,
                 [self.flags.npx, self.flags.npy, self.flags.npz + 1],
-            )
-            in_pmid0_inv = self.f_py.fortran_to_python(f_pmid0_inv)
-            in_zmid0_inv = self.f_py.fortran_to_python(f_zmid0_inv)
-            in_kpbl_inv = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.pmid0_inv.field[:] = self.f_py.fortran_to_python(
+                f_pmid0_inv
+            )[:]
+            self.pymoist.UW_state.zmid0_inv.field[:] = self.f_py.fortran_to_python(
+                f_zmid0_inv
+            )[:]
+            self.pymoist.UW_state.kpbl_inv.field[:] = self.f_py.fortran_to_python(
                 f_kpbl_inv,
                 [
                     self.flags.npx,
                     self.flags.npy,
                 ],
-            )
-            in_exnmid0_inv = self.f_py.fortran_to_python(f_exnmid0_inv)
-            in_exnifc0_inv = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.exnmid0_inv.field[:] = self.f_py.fortran_to_python(
+                f_exnmid0_inv
+            )[:]
+            self.pymoist.UW_state.exnifc0_inv.field[:] = self.f_py.fortran_to_python(
                 f_exnifc0_inv,
                 [self.flags.npx, self.flags.npy, self.flags.npz + 1],
-            )
-            in_dp0_inv = self.f_py.fortran_to_python(f_dp0_inv)
-            in_u0_inv = self.f_py.fortran_to_python(f_u0_inv)
-            in_v0_inv = self.f_py.fortran_to_python(f_v0_inv)
-            in_qv0_inv = self.f_py.fortran_to_python(f_qv0_inv)
-            in_ql0_inv = self.f_py.fortran_to_python(f_ql0_inv)
-            in_qi0_inv = self.f_py.fortran_to_python(f_qi0_inv)
-            in_t0_inv = self.f_py.fortran_to_python(f_t0_inv)
-            in_frland = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.dp0_inv.field[:] = self.f_py.fortran_to_python(
+                f_dp0_inv
+            )[:]
+            self.pymoist.UW_state.u0_inv.field[:] = self.f_py.fortran_to_python(
+                f_u0_inv
+            )[:]
+            self.pymoist.UW_state.v0_inv.field[:] = self.f_py.fortran_to_python(
+                f_v0_inv
+            )[:]
+            self.pymoist.UW_state.qv0_inv.field[:] = self.f_py.fortran_to_python(
+                f_qv0_inv
+            )[:]
+            self.pymoist.UW_state.ql0_inv.field[:] = self.f_py.fortran_to_python(
+                f_ql0_inv
+            )[:]
+            self.pymoist.UW_state.qi0_inv.field[:] = self.f_py.fortran_to_python(
+                f_qi0_inv
+            )[:]
+            self.pymoist.UW_state.t0_inv.field[:] = self.f_py.fortran_to_python(
+                f_t0_inv
+            )[:]
+            self.pymoist.UW_state.frland.field[:] = self.f_py.fortran_to_python(
                 f_frland,
                 [
                     self.flags.npx,
                     self.flags.npy,
                 ],
-            )
-            in_tke_inv = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.tke_inv.field[:] = self.f_py.fortran_to_python(
                 f_tke_inv,
                 [self.flags.npx, self.flags.npy, self.flags.npz + 1],
-            )
-            in_rkfre = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.rkfre.field[:] = self.f_py.fortran_to_python(
                 f_rkfre,
                 [
                     self.flags.npx,
                     self.flags.npy,
                 ],
-            )
-            in_cush = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.cush.field[:] = self.f_py.fortran_to_python(
                 f_cush,
                 [
                     self.flags.npx,
                     self.flags.npy,
                 ],
-            )
-            in_shfx = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.shfx.field[:] = self.f_py.fortran_to_python(
                 f_shfx,
                 [
                     self.flags.npx,
                     self.flags.npy,
                 ],
-            )
-            in_evap = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.evap.field[:] = self.f_py.fortran_to_python(
                 f_evap,
                 [
                     self.flags.npx,
                     self.flags.npy,
                 ],
-            )
-            in_cnvtr = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.cnvtr.field[:] = self.f_py.fortran_to_python(
                 f_cnvtr,
                 [
                     self.flags.npx,
                     self.flags.npy,
                 ],
-            )
-            in_CNV_Tracers = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.CNV_Tracers.field[:] = self.f_py.fortran_to_python(
                 f_CNV_Tracers,
                 [
                     self.flags.npx,
@@ -337,87 +359,100 @@ class PYMOIST_WRAPPER:
                     self.flags.npz,
                     self.pymoist.UW_config.NCNST,
                 ],
-            )
-            self.f_py.fortran_to_python(f_CNV_Tracers)
+            )[:]
 
-            out_umf_inv = self.f_py.fortran_to_python(
+            self.pymoist.UW_state.umf_inv.field[:] = self.f_py.fortran_to_python(
                 f_umf_inv,
                 [self.flags.npx, self.flags.npy, self.flags.npz + 1],
-            )
-            out_dcm_inv = self.f_py.fortran_to_python(f_dcm_inv)
-            out_qtflx_inv = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.dcm_inv.field[:] = self.f_py.fortran_to_python(
+                f_dcm_inv
+            )[:]
+            self.pymoist.UW_state.qtflx_inv.field[:] = self.f_py.fortran_to_python(
                 f_qtflx_inv,
                 [self.flags.npx, self.flags.npy, self.flags.npz + 1],
-            )
-            out_slflx_inv = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.slflx_inv.field[:] = self.f_py.fortran_to_python(
                 f_slflx_inv,
                 [self.flags.npx, self.flags.npy, self.flags.npz + 1],
-            )
-            out_uflx_inv = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.uflx_inv.field[:] = self.f_py.fortran_to_python(
                 f_uflx_inv,
                 [self.flags.npx, self.flags.npy, self.flags.npz + 1],
-            )
-            out_vflx_inv = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.vflx_inv.field[:] = self.f_py.fortran_to_python(
                 f_vflx_inv,
                 [self.flags.npx, self.flags.npy, self.flags.npz + 1],
-            )
-            out_qvten_inv = self.f_py.fortran_to_python(f_qvten_inv)
-            out_qlten_inv = self.f_py.fortran_to_python(f_qlten_inv)
-            out_qiten_inv = self.f_py.fortran_to_python(f_qiten_inv)
-            out_tten_inv = self.f_py.fortran_to_python(f_tten_inv)
-            out_uten_inv = self.f_py.fortran_to_python(f_uten_inv)
-            out_vten_inv = self.f_py.fortran_to_python(f_vten_inv)
-            out_qrten_inv = self.f_py.fortran_to_python(f_qrten_inv)
-            out_qsten_inv = self.f_py.fortran_to_python(f_qsten_inv)
-            out_cufrc_inv = self.f_py.fortran_to_python(f_cufrc_inv)
-            out_fer_inv = self.f_py.fortran_to_python(f_fer_inv)
-            out_fdr_inv = self.f_py.fortran_to_python(f_fdr_inv)
-            out_ndrop_inv = self.f_py.fortran_to_python(f_ndrop_inv)
-            out_nice_inv = self.f_py.fortran_to_python(f_nice_inv)
-            out_qldet_inv = self.f_py.fortran_to_python(f_qldet_inv)
-            out_qlsub_inv = self.f_py.fortran_to_python(f_qlsub_inv)
-            out_qidet_inv = self.f_py.fortran_to_python(f_qidet_inv)
-            out_qisub_inv = self.f_py.fortran_to_python(f_qisub_inv)
-            out_tpert_out = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.qvten_inv.field[:] = self.f_py.fortran_to_python(
+                f_qvten_inv
+            )[:]
+            self.pymoist.UW_state.qlten_inv.field[:] = self.f_py.fortran_to_python(
+                f_qlten_inv
+            )[:]
+            self.pymoist.UW_state.qiten_inv.field[:] = self.f_py.fortran_to_python(
+                f_qiten_inv
+            )[:]
+            self.pymoist.UW_state.tten_inv.field[:] = self.f_py.fortran_to_python(
+                f_tten_inv
+            )[:]
+            self.pymoist.UW_state.uten_inv.field[:] = self.f_py.fortran_to_python(
+                f_uten_inv
+            )[:]
+            self.pymoist.UW_state.vten_inv.field[:] = self.f_py.fortran_to_python(
+                f_vten_inv
+            )[:]
+            self.pymoist.UW_state.qrten_inv.field[:] = self.f_py.fortran_to_python(
+                f_qrten_inv
+            )[:]
+            self.pymoist.UW_state.qsten_inv.field[:] = self.f_py.fortran_to_python(
+                f_qsten_inv
+            )[:]
+            self.pymoist.UW_state.cufrc_inv.field[:] = self.f_py.fortran_to_python(
+                f_cufrc_inv
+            )[:]
+            self.pymoist.UW_state.fer_inv.field[:] = self.f_py.fortran_to_python(
+                f_fer_inv
+            )[:]
+            self.pymoist.UW_state.fdr_inv.field[:] = self.f_py.fortran_to_python(
+                f_fdr_inv
+            )[:]
+            self.pymoist.UW_state.ndrop_inv.field[:] = self.f_py.fortran_to_python(
+                f_ndrop_inv
+            )[:]
+            self.pymoist.UW_state.nice_inv.field[:] = self.f_py.fortran_to_python(
+                f_nice_inv
+            )[:]
+            self.pymoist.UW_state.qldet_inv.field[:] = self.f_py.fortran_to_python(
+                f_qldet_inv
+            )[:]
+            self.pymoist.UW_state.qlsub_inv.field[:] = self.f_py.fortran_to_python(
+                f_qlsub_inv
+            )[:]
+            self.pymoist.UW_state.qidet_inv.field[:] = self.f_py.fortran_to_python(
+                f_qidet_inv
+            )[:]
+            self.pymoist.UW_state.qisub_inv.field[:] = self.f_py.fortran_to_python(
+                f_qisub_inv
+            )[:]
+            self.pymoist.UW_state.tpert_out.field[:] = self.f_py.fortran_to_python(
                 f_tpert_out,
                 [
                     self.flags.npx,
                     self.flags.npy,
                 ],
-            )
-            out_qpert_out = self.f_py.fortran_to_python(
+            )[:]
+            self.pymoist.UW_state.qpert_out.field[:] = self.f_py.fortran_to_python(
                 f_qpert_out,
                 [
                     self.flags.npx,
                     self.flags.npy,
                 ],
-            )
+            )[:]
 
         with TimedCUDAProfiler("[UW] Run", self._timings):
             self.pymoist.UW_shallow_convection(
-                # Inputs
-                pifc0_inv=in_pifc0_inv,
-                zifc0_inv=in_zifc0_inv,
-                pmid0_inv=in_pmid0_inv,
-                zmid0_inv=in_zmid0_inv,
-                kpbl_inv=in_kpbl_inv,
-                exnmid0_inv=in_exnmid0_inv,
-                exnifc0_inv=in_exnifc0_inv,
-                dp0_inv=in_dp0_inv,
-                u0_inv=in_u0_inv,
-                v0_inv=in_v0_inv,
-                qv0_inv=in_qv0_inv,
-                ql0_inv=in_ql0_inv,
-                qi0_inv=in_qi0_inv,
-                t0_inv=in_t0_inv,
-                frland=in_frland,
-                tke_inv=in_tke_inv,
-                rkfre=in_rkfre,
-                cush=in_cush,
-                shfx=in_shfx,
-                evap=in_evap,
-                cnvtr=in_cnvtr,
-                CNV_Tracers=in_CNV_Tracers,
+                state=self.pymoist.UW_state,
                 # Parameters
                 dotransport=Int(dotransport),
                 k0=Int(k0),
@@ -447,60 +482,84 @@ class PYMOIST_WRAPPER:
                 use_momenflx=Int(use_momenflx),
                 rdrop=Float(rdrop),
                 iter_cin=Int(iter_cin),
-                # Outputs
-                umf_inv=out_umf_inv,
-                dcm_inv=out_dcm_inv,
-                qtflx_inv=out_qtflx_inv,
-                slflx_inv=out_slflx_inv,
-                uflx_inv=out_uflx_inv,
-                vflx_inv=out_vflx_inv,
-                qvten_inv=out_qvten_inv,
-                qlten_inv=out_qlten_inv,
-                qiten_inv=out_qiten_inv,
-                tten_inv=out_tten_inv,
-                uten_inv=out_uten_inv,
-                vten_inv=out_vten_inv,
-                qrten_inv=out_qrten_inv,
-                qsten_inv=out_qsten_inv,
-                cufrc_inv=out_cufrc_inv,
-                fer_inv=out_fer_inv,
-                fdr_inv=out_fdr_inv,
-                ndrop_inv=out_ndrop_inv,
-                nice_inv=out_nice_inv,
-                qldet_inv=out_qldet_inv,
-                qlsub_inv=out_qlsub_inv,
-                qidet_inv=out_qidet_inv,
-                qisub_inv=out_qisub_inv,
-                tpert_out=out_tpert_out,
-                qpert_out=out_qpert_out,
             )
 
-        with TimedCUDAProfiler("[GFDL_1M] Python -> Fortran", self._timings):
-            self.f_py.python_to_fortran(out_umf_inv, f_umf_inv)
-            self.f_py.python_to_fortran(out_dcm_inv, f_dcm_inv)
-            self.f_py.python_to_fortran(out_qtflx_inv, f_qtflx_inv)
-            self.f_py.python_to_fortran(out_slflx_inv, f_slflx_inv)
-            self.f_py.python_to_fortran(out_uflx_inv, f_uflx_inv)
-            self.f_py.python_to_fortran(out_vflx_inv, f_vflx_inv)
-            self.f_py.python_to_fortran(out_qvten_inv, f_qvten_inv)
-            self.f_py.python_to_fortran(out_qlten_inv, f_qlten_inv)
-            self.f_py.python_to_fortran(out_qiten_inv, f_qiten_inv)
-            self.f_py.python_to_fortran(out_tten_inv, f_tten_inv)
-            self.f_py.python_to_fortran(out_uten_inv, f_uten_inv)
-            self.f_py.python_to_fortran(out_vten_inv, f_vten_inv)
-            self.f_py.python_to_fortran(out_qrten_inv, f_qrten_inv)
-            self.f_py.python_to_fortran(out_qsten_inv, f_qsten_inv)
-            self.f_py.python_to_fortran(out_cufrc_inv, f_cufrc_inv)
-            self.f_py.python_to_fortran(out_fer_inv, f_fer_inv)
-            self.f_py.python_to_fortran(out_fdr_inv, f_fdr_inv)
-            self.f_py.python_to_fortran(out_ndrop_inv, f_ndrop_inv)
-            self.f_py.python_to_fortran(out_nice_inv, f_nice_inv)
-            self.f_py.python_to_fortran(out_qldet_inv, f_qldet_inv)
-            self.f_py.python_to_fortran(out_qlsub_inv, f_qlsub_inv)
-            self.f_py.python_to_fortran(out_qidet_inv, f_qidet_inv)
-            self.f_py.python_to_fortran(out_qisub_inv, f_qisub_inv)
-            self.f_py.python_to_fortran(out_tpert_out, f_tpert_out)
-            self.f_py.python_to_fortran(out_qpert_out, f_qpert_out)
+        with TimedCUDAProfiler("[UW] Python -> Fortran", self._timings):
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.umf_inv.field[:], f_umf_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.dcm_inv.field[:], f_dcm_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.qtflx_inv.field[:], f_qtflx_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.slflx_inv.field[:], f_slflx_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.uflx_inv.field[:], f_uflx_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.vflx_inv.field[:], f_vflx_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.qvten_inv.field[:], f_qvten_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.qlten_inv.field[:], f_qlten_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.qiten_inv.field[:], f_qiten_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.tten_inv.field[:], f_tten_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.uten_inv.field[:], f_uten_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.vten_inv.field[:], f_vten_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.qrten_inv.field[:], f_qrten_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.qsten_inv.field[:], f_qsten_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.cufrc_inv.field[:], f_cufrc_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.fer_inv.field[:], f_fer_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.fdr_inv.field[:], f_fdr_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.ndrop_inv.field[:], f_ndrop_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.nice_inv.field[:], f_nice_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.qldet_inv.field[:], f_qldet_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.qlsub_inv.field[:], f_qlsub_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.qidet_inv.field[:], f_qidet_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.qisub_inv.field[:], f_qisub_inv
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.tpert_out.field[:], f_tpert_out
+            )
+            self.f_py.python_to_fortran(
+                self.pymoist.UW_state.qpert_out.field[:], f_qpert_out
+            )
 
 
 WRAPPER = PYMOIST_WRAPPER()
