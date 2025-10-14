@@ -6,5 +6,6 @@ from ndsl.dsl.typing import Int
 @dataclass
 class UWConfiguration:
     NCNST: Int
+    """Number of tracers"""
     k0: Int
     windsrcavg: Int
