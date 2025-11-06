@@ -164,6 +164,7 @@ class GEOSPyMoistWrapper:
             backend=self.stencil_config.backend,
             tile_nx=self.flags.npx * self.flags.layout_x,
             tile_nz=self.flags.npz,
+            single_code_path=True,
         )
         self._is_orchestrated = self.stencil_config.dace_config.is_dace_orchestrated()
 
