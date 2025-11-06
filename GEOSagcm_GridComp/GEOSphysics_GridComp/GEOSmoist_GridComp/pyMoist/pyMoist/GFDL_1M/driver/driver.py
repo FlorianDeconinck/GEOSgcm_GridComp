@@ -2,7 +2,7 @@
 
 import dace
 
-from ndsl import QuantityFactory, StencilFactory, orchestrate
+from ndsl import QuantityFactory, StencilFactory, NDSLRuntime
 from ndsl.dsl.typing import FloatField, FloatFieldIJ
 from pyMoist.GFDL_1M.config import GFDL1MConfig
 from pyMoist.GFDL_1M.driver.check_flags import check_flags
@@ -19,7 +19,7 @@ from pyMoist.GFDL_1M.driver.terminal_fall.main import TerminalFall
 from pyMoist.GFDL_1M.driver.warm_rain.main import WarmRain
 
 
-class MicrophysicsDriver:
+class MicrophysicsDriver(NDSLRuntime):
     """
     Computes precipitates and microphysics tendencies using the following functions:
     __init__:
@@ -54,6 +54,7 @@ class MicrophysicsDriver:
             quantity_factory: QuantityFactory with model domain information
             GFDL_1M_config: driver configuration
         """
+        super().__init__(stencil_factory.config.dace_config)
         self.config_dependent_constants = ConfigConstants.make(GFDL_1M_config)
 
         # Check values for untested code paths
@@ -72,7 +73,7 @@ class MicrophysicsDriver:
         # initialize temporaries
         # -----------------------------------------------------------------------
 
-        self.temporaries = Temporaries.make(quantity_factory)
+        self.temporaries = Temporaries.make(self, quantity_factory)
 
         # -----------------------------------------------------------------------
         # initialize masks
@@ -92,8 +93,6 @@ class MicrophysicsDriver:
         # -----------------------------------------------------------------------
         # initialize stencils
         # -----------------------------------------------------------------------
-
-        orchestrate(obj=self, config=stencil_factory.config.dace_config)
 
         self._setup = Setup(
             stencil_factory,
