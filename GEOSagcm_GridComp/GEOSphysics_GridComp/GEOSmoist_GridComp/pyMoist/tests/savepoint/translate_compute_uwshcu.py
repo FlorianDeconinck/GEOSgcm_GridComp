@@ -89,7 +89,6 @@ class TranslateComputeUwshcuInv(TranslateFortranData2Py):
             "tpert_out": self.grid.compute_dict(),
             "qpert_out": self.grid.compute_dict(),
             "cush": self.grid.compute_dict(),
-            "testvar4D": self.grid.compute_dict(),
         }
 
     def extra_data_load(self, data_loader: DataLoader):
@@ -186,11 +185,9 @@ class TranslateComputeUwshcuInv(TranslateFortranData2Py):
             qisub_inv=state.output.qisub_inv,
             tpert_out=state.output.tpert_out,
             qpert_out=state.output.qpert_out,
-            testvar4D=state.output.testvar4D,
         )
 
         return {
-            "testvar4D": state.output.testvar4D.view[:],
             "CNV_Tracers": state.input_output.CNV_Tracers.view[:],
             "CNPCRATE": state.input_output.cnvtr.view[:],
             "RKFRE": state.output.RKFRE.view[:],
