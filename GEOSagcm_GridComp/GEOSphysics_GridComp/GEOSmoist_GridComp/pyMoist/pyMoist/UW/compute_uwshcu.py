@@ -29,6 +29,7 @@ from pyMoist.saturation_tables import (
     saturation_specific_humidity,
 )
 from pyMoist.UW.config import UWConfiguration
+from pyMoist.UW.state import UWState
 from pyMoist.UW.locals import UWLocals
 from pyMoist.UW.uwshcu_functions import (
     compute_alpha,
@@ -4854,12 +4855,12 @@ def calc_pbl_fluxes(
             if dotransport == 1:
                 n = 0
                 while n < ncnst:
-                    xsrc = trsrc[0, 0][n]
+                    xsrc: FloatFieldIJ = trsrc[0, 0][n]
                     xmean = tr0.at(K=kinv, ddim=[n])
-                    xtop = tr0.at(K=kinv + 1, ddim=[n]) + sstr0.at(K=kinv + 1, ddim=[n]) * (
+                    xtop: FloatFieldIJ = tr0.at(K=kinv + 1, ddim=[n]) + sstr0.at(K=kinv + 1, ddim=[n]) * (
                         pifc0.at(K=kinv + 1) - pmid0.at(K=kinv + 1)
                     )
-                    xbot = tr0.at(K=kinv - 1, ddim=[n]) + sstr0.at(K=kinv - 1, ddim=[n]) * (
+                    xbot: FloatFieldIJ = tr0.at(K=kinv - 1, ddim=[n]) + sstr0.at(K=kinv - 1, ddim=[n]) * (
                         pifc0.at(K=kinv) - pmid0.at(K=kinv - 1)
                     )
 
@@ -4903,7 +4904,6 @@ def calc_pbl_fluxes(
 
                     if K <= kinv:
                         trflx[0, 0, 0][n] = xflx_ndim[0, 0, 0][n]
-
                     n += 1
 
 
@@ -7430,6 +7430,7 @@ class ComputeUwshcuInv(NDSLRuntime):
         stencil_factory: StencilFactory,
         quantity_factory: QuantityFactory,
         config: UWConfiguration,
+        state: UWState,
         formulation: SaturationFormulation = SaturationFormulation.Staars,
     ) -> None:
         # Initialize the ComputeUwshcu class
@@ -7444,6 +7445,7 @@ class ComputeUwshcuInv(NDSLRuntime):
         super().__init__(stencil_factory.config.dace_config)
 
         self.config = config
+        self.state = state
         self.locals = UWLocals.make(self, quantity_factory)
         self.stencil_factory = stencil_factory
         self.quantity_factory = quantity_factory
@@ -7981,12 +7983,12 @@ class ComputeUwshcuInv(NDSLRuntime):
         self._reset_mask(self.stop_buoyancy_sort, False)
 
         self._setup_inputs(
-            PLE=PLE,
-            QLLS=QLLS,
-            QLCN=QLCN,
-            QILS=QILS,
-            QICN=QICN,
-            ZLE=ZLE,
+            PLE=self.state.input.PLE,
+            QLLS=self.state.input.QLLS,
+            QLCN=self.state.input.QLCN,
+            QILS=self.state.input.QILS,
+            QICN=self.state.input.QICN,
+            ZLE=self.state.input.ZLE,
             PKE=self.locals.exnifc0_inv,
             PL=self.locals.pmid0_inv,
             PK=self.locals.exnmid0_inv,
@@ -7994,7 +7996,7 @@ class ComputeUwshcuInv(NDSLRuntime):
             ZL0=self.locals.zmid0_inv,
             DP=self.locals.dp0_inv,
             MASS=self.locals.MASS,
-            RKFRE=RKFRE,
+            RKFRE=self.state.output.RKFRE,
             QLTOT=self.locals.ql0_inv,
             QITOT=self.locals.qi0_inv,
         )
@@ -8002,23 +8004,23 @@ class ComputeUwshcuInv(NDSLRuntime):
         self._compute_uwshcu_invert_before(
             # Inputs
             pmid0_inv=self.locals.pmid0_inv,
-            u0_inv=u0_inv,
-            v0_inv=v0_inv,
+            u0_inv=self.state.input_output.u0_inv,
+            v0_inv=self.state.input_output.v0_inv,
             zmid0_inv=self.locals.zmid0_inv,
             exnmid0_inv=self.locals.exnmid0_inv,
             dp0_inv=self.locals.dp0_inv,
-            qv0_inv=qv0_inv,
+            qv0_inv=self.state.input_output.qv0_inv,
             ql0_inv=self.locals.ql0_inv,
             qi0_inv=self.locals.qi0_inv,
-            t0_inv=t0_inv,
+            t0_inv=self.state.input_output.t0_inv,
             tke_inv=tke_inv,
             pifc0_inv=PLE,
             zifc0_inv=self.locals.zifc0_inv,
             exnifc0_inv=self.locals.exnifc0_inv,
             kpbl_inv=kpbl_inv,
-            cnvtr=cnvtr,
+            cnvtr=self.state.input_output.cnvtr,
             frland=frland,
-            CNV_Tracers=CNV_Tracers,
+            CNV_Tracers=self.state.input_output.CNV_Tracers,
             tr0_inout=self.tr0_inout,
             # Outputs
             pmid0_in=self.locals.pmid0_in,
@@ -8054,7 +8056,7 @@ class ComputeUwshcuInv(NDSLRuntime):
             th0_in=self.locals.th0_in,
             tr0_inout=self.tr0_inout,
             cush_inout=self.locals.cush_inout,
-            cush=cush,
+            cush=self.state.input_output.cush,
             umf_out=self.locals.umf_out,
             shfx=shfx,
             evap=evap,
@@ -8197,7 +8199,7 @@ class ComputeUwshcuInv(NDSLRuntime):
                 uflx_out=self.locals.uflx_out,
                 vflx_out=self.locals.vflx_out,
                 kinv=self.locals.kinv,
-                cush=cush,
+                cush=self.state.input_output.cush,
                 tscaleh=self.locals.tscaleh,
                 cush_inout=self.locals.cush_inout,
             )
@@ -8309,7 +8311,7 @@ class ComputeUwshcuInv(NDSLRuntime):
                 thvubot=self.locals.thvubot,
                 thvutop=self.locals.thvutop,
                 iteration=iteration,
-                RKFRE=RKFRE,
+                RKFRE=self.state.output.RKFRE,
                 tkeavg=self.locals.tkeavg,
                 thvlmin=self.locals.thvlmin,
                 usrc=self.locals.usrc,
@@ -8542,7 +8544,7 @@ class ComputeUwshcuInv(NDSLRuntime):
                 iteration=iteration,
                 cin_IJ=self.locals.cin_IJ,
                 cinlcl_IJ=self.locals.cinlcl_IJ,
-                RKFRE=RKFRE,
+                RKFRE=self.state.output.RKFRE,
                 tkeavg=self.locals.tkeavg,
                 umf_out=self.locals.umf_out,
                 qtflx_out=self.locals.qtflx_out,
@@ -8765,7 +8767,7 @@ class ComputeUwshcuInv(NDSLRuntime):
                 fdr=self.locals.fdr,
                 umf_temp=self.locals.umf_temp,
                 xco=self.locals.xco,
-                cush=cush,
+                cush=self.state.input_output.cush,
                 cush_inout=self.locals.cush_inout,
                 iteration=iteration,
             )
@@ -9149,7 +9151,7 @@ class ComputeUwshcuInv(NDSLRuntime):
                     dcm=self.locals.dcm,
                     qrten=self.locals.qrten,
                     qsten=self.locals.qsten,
-                    cush=cush,
+                    cush=self.state.input_output.cush,
                     cufrc=self.locals.cufrc,
                     slflx_s=self.locals.slflx_s,
                     slflx=self.locals.slflx,
@@ -9247,7 +9249,7 @@ class ComputeUwshcuInv(NDSLRuntime):
             qrten=self.locals.qrten,
             qsten=self.locals.qsten,
             cufrc=self.locals.cufrc,
-            cush=cush,
+            cush=self.state.input_output.cush,
             umf_out=self.locals.umf_out,
             dcm_out=self.locals.dcm_out,
             dcm_outvar=self.locals.dcm_outvar,
@@ -9330,7 +9332,7 @@ class ComputeUwshcuInv(NDSLRuntime):
             nice_out=self.locals.nice_out,
             tr0=self.tr0,
             tr0_inout=self.tr0_inout,
-            CNV_Tracers=CNV_Tracers,
+            CNV_Tracers=self.state.input_output.CNV_Tracers,
             cush_inout=self.locals.cush_inout,
             qvten_outvar=self.locals.qvten_outvar,
             qlten_outvar=self.locals.qlten_outvar,
@@ -9343,62 +9345,62 @@ class ComputeUwshcuInv(NDSLRuntime):
             cush_inoutvar=self.locals.cush_inoutvar,
             umf_outvar=self.locals.umf_outvar,
             # Outputs
-            umf_inv=umf_inv,
-            dcm_inv=dcm_inv,
-            qtflx_inv=qtflx_inv,
-            slflx_inv=slflx_inv,
-            uflx_inv=uflx_inv,
-            vflx_inv=vflx_inv,
-            qvten_inv=qvten_inv,
-            qlten_inv=qlten_inv,
-            qiten_inv=qiten_inv,
-            tten_inv=tten_inv,
-            uten_inv=uten_inv,
-            vten_inv=vten_inv,
-            qrten_inv=qrten_inv,
-            qsten_inv=qsten_inv,
-            cufrc_inv=cufrc_inv,
-            fer_inv=fer_inv,
-            fdr_inv=fdr_inv,
-            ndrop_inv=ndrop_inv,
-            nice_inv=nice_inv,
-            qldet_inv=qldet_inv,
-            qlsub_inv=qlsub_inv,
-            qidet_inv=qidet_inv,
-            qisub_inv=qisub_inv,
-            cush=cush,
+            umf_inv=self.state.output.umf_inv,
+            dcm_inv=self.state.output.dcm_inv,
+            qtflx_inv=self.state.output.qtflx_inv,
+            slflx_inv=self.state.output.slflx_inv,
+            uflx_inv=self.state.output.uflx_inv,
+            vflx_inv=self.state.output.vflx_inv,
+            qvten_inv=self.state.output.qvten_inv,
+            qlten_inv=self.state.output.qlten_inv,
+            qiten_inv=self.state.output.qiten_inv,
+            tten_inv=self.state.output.tten_inv,
+            uten_inv=self.state.output.uten_inv,
+            vten_inv=self.state.output.vten_inv,
+            qrten_inv=self.state.output.qrten_inv,
+            qsten_inv=self.state.output.qsten_inv,
+            cufrc_inv=self.state.output.cufrc_inv,
+            fer_inv=self.state.output.fer_inv,
+            fdr_inv=self.state.output.fdr_inv,
+            ndrop_inv=self.state.output.ndrop_inv,
+            nice_inv=self.state.output.nice_inv,
+            qldet_inv=self.state.output.qldet_inv,
+            qlsub_inv=self.state.output.qlsub_inv,
+            qidet_inv=self.state.output.qidet_inv,
+            qisub_inv=self.state.output.qisub_inv,
+            cush=self.state.input_output.cush,
         )
 
         self._setup_outputs(
-            Q=qv0_inv,
-            T=t0_inv,
-            U=u0_inv,
-            V=v0_inv,
-            DQVDT_SC=qvten_inv,
-            DTDT_SC=tten_inv,
-            DUDT_SC=uten_inv,
-            DVDT_SC=vten_inv,
-            MFD_SC=MFD_SC,
-            DETR_SC=fdr_inv,
-            UMF_SC=umf_inv,
+            Q=self.state.input_output.qv0_inv,
+            T=self.state.input_output.t0_inv,
+            U=self.state.input_output.u0_inv,
+            V=self.state.input_output.v0_inv,
+            DQVDT_SC=self.state.output.qvten_inv,
+            DTDT_SC=self.state.output.tten_inv,
+            DUDT_SC=self.state.output.uten_inv,
+            DVDT_SC=self.state.output.vten_inv,
+            MFD_SC=self.state.output.MFD_SC,
+            DETR_SC=self.state.output.fdr_inv,
+            UMF_SC=self.state.output.umf_inv,
             DP=self.locals.dp0_inv,
-            DQADT_SC=DQADT_SC,
+            DQADT_SC=self.state.output.DQADT_SC,
             MASS=self.locals.MASS,
             CLCN=self.locals.CLCN,
-            QLENT_SC=QLENT_SC,
-            QIENT_SC=QIENT_SC,
-            QLDET_SC=qldet_inv,
-            QIDET_SC=qidet_inv,
+            QLENT_SC=self.state.output.QLENT_SC,
+            QIENT_SC=self.state.output.QIENT_SC,
+            QLDET_SC=self.state.output.qldet_inv,
+            QIDET_SC=self.state.output.qidet_inv,
             QLCN=self.locals.QLCN,
             QICN=self.locals.QICN,
             QLLS=self.locals.QLLS,
             QILS=self.locals.QILS,
-            QLSUB_SC=qlsub_inv,
-            QISUB_SC=qisub_inv,
-            PTR3D=PTR3D,
+            QLSUB_SC=self.state.output.qlsub_inv,
+            QISUB_SC=self.state.output.qisub_inv,
+            PTR3D=self.state.output.PTR3D,
             PTR2D=self.locals.PTR2D,
-            DQRDT_SC=qrten_inv,
-            DQSDT_SC=qsten_inv,
-            DQIDT_SC=qiten_inv,
-            CUSH=cush,
+            DQRDT_SC=self.state.output.qrten_inv,
+            DQSDT_SC=self.state.output.qsten_inv,
+            DQIDT_SC=self.state.output.qiten_inv,
+            CUSH=self.state.input_output.cush,
         )

@@ -1,13 +1,12 @@
 from f90nml import Namelist
 
 from ndsl import Quantity, QuantityFactory, StencilFactory
-from ndsl.constants import X_DIM, Y_DIM, Z_DIM, Z_INTERFACE_DIM
-from ndsl.dsl.typing import FloatField
+from ndsl.constants import X_DIM, Y_DIM, Z_DIM
 from ndsl.stencils.testing.savepoint import DataLoader
 from ndsl.stencils.testing.translate import TranslateFortranData2Py
-from ndsl.utils import safe_assign_array
 from pyMoist.UW.compute_uwshcu import ComputeUwshcuInv
 from pyMoist.UW.config import UWConfiguration
+from pyMoist.UW.state import UWState
 
 
 # Dev NOTE: The data for this translate test comes from combining several ncfiles
@@ -90,220 +89,147 @@ class TranslateComputeUwshcuInv(TranslateFortranData2Py):
             "tpert_out": self.grid.compute_dict(),
             "qpert_out": self.grid.compute_dict(),
             "cush": self.grid.compute_dict(),
+            "testvar4D": self.grid.compute_dict(),
         }
-
-    def make_ntracers_ijk_field(self, data) -> Quantity:
-        qty = self.quantity_factory.empty(
-            [X_DIM, Y_DIM, Z_DIM, "ntracers"],
-            "n/a",
-        )
-        qty.view[:, :, :, :] = qty.np.asarray(data[:, :, :, :])
-        return qty
-
-    def make_ijk_field(self, data, dtype=FloatField) -> Quantity:
-        qty = self.quantity_factory.empty([X_DIM, Y_DIM, Z_DIM], "n/a", dtype=dtype)
-        qty.view[:, :, :] = qty.np.asarray(data[:, :, :])
-        return qty
-
-    def make_ij_field(self, data, dtype=FloatField) -> Quantity:
-        qty = self.quantity_factory.empty([X_DIM, Y_DIM], "n/a", dtype=dtype)
-        qty.view[:, :] = qty.np.asarray(data[:, :])
-        return qty
 
     def extra_data_load(self, data_loader: DataLoader):
         self.constants = data_loader.load("ComputeUwshcuInv-constants")
 
     def compute(self, inputs):
         config = UWConfiguration(**self.constants)
+        state = UWState.zeros(
+            self.quantity_factory,
+            data_dimensions={
+                "convection_tracers": config.NCNST,
+            },
+        )
 
         compute_uwshcu = ComputeUwshcuInv(
             self.stencil_factory,
             self.quantity_factory,
             config,
+            state,
         )
 
-        # Field inputs
-        PLE = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="n/a")
-        safe_assign_array(PLE.view[:, :, :], inputs["PLE"])
-        ZLE = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="n/a")
-        safe_assign_array(ZLE.view[:, :, :], inputs["ZLE"])
-        QLLS = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        safe_assign_array(QLLS.view[:, :, :], inputs["QLLS"])
-        QILS = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        safe_assign_array(QILS.view[:, :, :], inputs["QILS"])
-        QLCN = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        safe_assign_array(QLCN.view[:, :, :], inputs["QLCN"])
-        QICN = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        safe_assign_array(QICN.view[:, :, :], inputs["QICN"])
-        kpbl_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM], units="n/a")
-        safe_assign_array(kpbl_inv.view[:, :], inputs["kpbl_inv"])
-        u0_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        safe_assign_array(u0_inv.view[:, :, :], inputs["u0_inv"])
-        v0_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        safe_assign_array(v0_inv.view[:, :, :], inputs["v0_inv"])
-        qv0_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        safe_assign_array(qv0_inv.view[:, :, :], inputs["qv0_inv"])
-        t0_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        safe_assign_array(t0_inv.view[:, :, :], inputs["t0_inv"])
-        frland = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM], units="n/a")
-        safe_assign_array(frland.view[:, :], inputs["frland"])
-        tke_inv = QuantityFactory.zeros(
-            self.quantity_factory, dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="n/a"
-        )
-        safe_assign_array(tke_inv.view[:, :, :], inputs["tke_inv"])
-        cush = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM], units="n/a")
-        safe_assign_array(cush.view[:, :], inputs["cush"])
-        shfx = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM], units="n/a")
-        safe_assign_array(shfx.view[:, :], inputs["shfx"])
-        evap = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM], units="n/a")
-        safe_assign_array(evap.view[:, :], inputs["evap"])
-        cnvtr = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM], units="n/a")
-        safe_assign_array(cnvtr.view[:, :], inputs["cnvtr"])
+        # Inputs
+        state.input.PLE.field[:] = inputs["PLE"]
+        state.input.ZLE.field[:] = inputs["ZLE"]
+        state.input.QLLS.field[:] = inputs["QLLS"]
+        state.input.QILS.field[:] = inputs["QILS"]
+        state.input.QLCN.field[:] = inputs["QLCN"]
+        state.input.QICN.field[:] = inputs["QICN"]
+        state.input.kpbl_inv.field[:] = inputs["kpbl_inv"]
+        state.input.frland.field[:] = inputs["frland"]
+        state.input.tke_inv.field[:] = inputs["tke_inv"]
+        state.input.shfx.field[:] = inputs["shfx"]
+        state.input.evap.field[:] = inputs["evap"]
 
-        CNV_Tracers = self.make_ntracers_ijk_field(inputs["CNV_Tracers"])
-
-        # Outputs
-        # Z_interface fields
-        umf_inv = QuantityFactory.zeros(
-            self.quantity_factory, dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="n/a"
-        )
-        qtflx_inv = QuantityFactory.zeros(
-            self.quantity_factory, dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="n/a"
-        )
-        slflx_inv = QuantityFactory.zeros(
-            self.quantity_factory, dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="n/a"
-        )
-        uflx_inv = QuantityFactory.zeros(
-            self.quantity_factory, dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="n/a"
-        )
-        vflx_inv = QuantityFactory.zeros(
-            self.quantity_factory, dims=[X_DIM, Y_DIM, Z_INTERFACE_DIM], units="n/a"
-        )
-
-        # FloatFields
-        dcm_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        qvten_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        qlten_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        qiten_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        tten_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        uten_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        vten_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        qrten_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        qsten_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        cufrc_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        fer_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        fdr_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        ndrop_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        nice_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        qldet_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        qlsub_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        qidet_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        qisub_inv = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        DQADT_SC = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        MFD_SC = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        PTR3D = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        QLENT_SC = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-        QIENT_SC = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM, Z_DIM], units="n/a")
-
-        # FloatFieldIJs
-        RKFRE = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM], units="n/a")
-        tpert_out = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM], units="n/a")
-        qpert_out = QuantityFactory.zeros(self.quantity_factory, dims=[X_DIM, Y_DIM], units="n/a")
+        # In/outs
+        state.input_output.u0_inv.field[:] = inputs["u0_inv"]
+        state.input_output.v0_inv.field[:] = inputs["v0_inv"]
+        state.input_output.qv0_inv.field[:] = inputs["qv0_inv"]
+        state.input_output.t0_inv.field[:] = inputs["t0_inv"]
+        state.input_output.cush.field[:] = inputs["cush"]
+        state.input_output.CNV_Tracers.field[:] = inputs["CNV_Tracers"]
+        state.input_output.cnvtr.field[:] = inputs["cnvtr"]
 
         compute_uwshcu(
-            # Field inputs
-            PLE=PLE,
-            ZLE=ZLE,
-            QLLS=QLLS,
-            QILS=QILS,
-            QLCN=QLCN,
-            QICN=QICN,
-            kpbl_inv=kpbl_inv,
-            u0_inv=u0_inv,
-            v0_inv=v0_inv,
-            qv0_inv=qv0_inv,
-            t0_inv=t0_inv,
-            frland=frland,
-            tke_inv=tke_inv,
-            cush=cush,
-            shfx=shfx,
-            evap=evap,
-            cnvtr=cnvtr,
-            CNV_Tracers=CNV_Tracers,
+            # Inputs
+            PLE=state.input.PLE,
+            ZLE=state.input.ZLE,
+            QLLS=state.input.QLLS,
+            QILS=state.input.QILS,
+            QLCN=state.input.QLCN,
+            QICN=state.input.QICN,
+            kpbl_inv=state.input.kpbl_inv,
+            frland=state.input.frland,
+            tke_inv=state.input.tke_inv,
+            shfx=state.input.shfx,
+            evap=state.input.evap,
+            # In/outs
+            u0_inv=state.input_output.u0_inv,
+            v0_inv=state.input_output.v0_inv,
+            qv0_inv=state.input_output.qv0_inv,
+            t0_inv=state.input_output.t0_inv,
+            cnvtr=state.input_output.cnvtr,
+            cush=state.input_output.cush,
+            CNV_Tracers=state.input_output.CNV_Tracers,
             # Outputs
-            RKFRE=RKFRE,
-            MFD_SC=MFD_SC,
-            DQADT_SC=DQADT_SC,
-            PTR3D=PTR3D,
-            QLENT_SC=QLENT_SC,
-            QIENT_SC=QIENT_SC,
-            umf_inv=umf_inv,
-            dcm_inv=dcm_inv,
-            qtflx_inv=qtflx_inv,
-            slflx_inv=slflx_inv,
-            uflx_inv=uflx_inv,
-            vflx_inv=vflx_inv,
-            qvten_inv=qvten_inv,
-            qlten_inv=qlten_inv,
-            qiten_inv=qiten_inv,
-            tten_inv=tten_inv,
-            uten_inv=uten_inv,
-            vten_inv=vten_inv,
-            qrten_inv=qrten_inv,
-            qsten_inv=qsten_inv,
-            cufrc_inv=cufrc_inv,
-            fer_inv=fer_inv,
-            fdr_inv=fdr_inv,
-            ndrop_inv=ndrop_inv,
-            nice_inv=nice_inv,
-            qldet_inv=qldet_inv,
-            qlsub_inv=qlsub_inv,
-            qidet_inv=qidet_inv,
-            qisub_inv=qisub_inv,
-            tpert_out=tpert_out,
-            qpert_out=qpert_out,
+            RKFRE=state.output.RKFRE,
+            MFD_SC=state.output.MFD_SC,
+            DQADT_SC=state.output.DQADT_SC,
+            PTR3D=state.output.PTR3D,
+            QLENT_SC=state.output.QLENT_SC,
+            QIENT_SC=state.output.QIENT_SC,
+            umf_inv=state.output.umf_inv,
+            dcm_inv=state.output.dcm_inv,
+            qtflx_inv=state.output.qtflx_inv,
+            slflx_inv=state.output.slflx_inv,
+            uflx_inv=state.output.uflx_inv,
+            vflx_inv=state.output.vflx_inv,
+            qvten_inv=state.output.qvten_inv,
+            qlten_inv=state.output.qlten_inv,
+            qiten_inv=state.output.qiten_inv,
+            tten_inv=state.output.tten_inv,
+            uten_inv=state.output.uten_inv,
+            vten_inv=state.output.vten_inv,
+            qrten_inv=state.output.qrten_inv,
+            qsten_inv=state.output.qsten_inv,
+            cufrc_inv=state.output.cufrc_inv,
+            fer_inv=state.output.fer_inv,
+            fdr_inv=state.output.fdr_inv,
+            ndrop_inv=state.output.ndrop_inv,
+            nice_inv=state.output.nice_inv,
+            qldet_inv=state.output.qldet_inv,
+            qlsub_inv=state.output.qlsub_inv,
+            qidet_inv=state.output.qidet_inv,
+            qisub_inv=state.output.qisub_inv,
+            tpert_out=state.output.tpert_out,
+            qpert_out=state.output.qpert_out,
+            testvar4D=state.output.testvar4D,
         )
 
         return {
-            "CNV_Tracers": CNV_Tracers.view[:],
-            "CNPCRATE": cnvtr.view[:],
-            "RKFRE": RKFRE.view[:],
-            "Q": qv0_inv.view[:],
-            "T": t0_inv.view[:],
-            "U": u0_inv.view[:],
-            "V": v0_inv.view[:],
-            "QIDET_SC": qidet_inv.view[:],
-            "QLDET_SC": qldet_inv.view[:],
-            "MFD_SC": MFD_SC.view[:],
-            "DQADT_SC": DQADT_SC.view[:],
-            "PTR3D": PTR3D.view[:],
-            "QLENT_SC": QLENT_SC.view[:],
-            "QIENT_SC": QIENT_SC.view[:],
-            "umf_inv": umf_inv.view[:],
-            "dcm_inv": dcm_inv.view[:],
-            "qtflx_inv": qtflx_inv.view[:],
-            "slflx_inv": slflx_inv.view[:],
-            "uflx_inv": uflx_inv.view[:],
-            "vflx_inv": vflx_inv.view[:],
-            "qvten_inv": qvten_inv.view[:],
-            "qlten_inv": qlten_inv.view[:],
-            "qiten_inv": qiten_inv.view[:],
-            "tten_inv": tten_inv.view[:],
-            "uten_inv": uten_inv.view[:],
-            "vten_inv": vten_inv.view[:],
-            "qrten_inv": qrten_inv.view[:],
-            "qsten_inv": qsten_inv.view[:],
-            "cufrc_inv": cufrc_inv.view[:],
-            "fer_inv": fer_inv.view[:],
-            "fdr_inv": fdr_inv.view[:],
-            "ndrop_inv": ndrop_inv.view[:],
-            "nice_inv": nice_inv.view[:],
-            "qldet_inv": qldet_inv.view[:],
-            "qlsub_inv": qlsub_inv.view[:],
-            "qidet_inv": qidet_inv.view[:],
-            "qisub_inv": qisub_inv.view[:],
-            "tpert_out": tpert_out.view[:],
-            "qpert_out": qpert_out.view[:],
+            "testvar4D": state.output.testvar4D.view[:],
+            "CNV_Tracers": state.input_output.CNV_Tracers.view[:],
+            "CNPCRATE": state.input_output.cnvtr.view[:],
+            "RKFRE": state.output.RKFRE.view[:],
+            "Q": state.input_output.qv0_inv.view[:],
+            "T": state.input_output.t0_inv.view[:],
+            "U": state.input_output.u0_inv.view[:],
+            "V": state.input_output.v0_inv.view[:],
+            "QIDET_SC": state.output.qidet_inv.view[:],
+            "QLDET_SC": state.output.qldet_inv.view[:],
+            "MFD_SC": state.output.MFD_SC.view[:],
+            "DQADT_SC": state.output.DQADT_SC.view[:],
+            "PTR3D": state.output.PTR3D.view[:],
+            "QLENT_SC": state.output.QLENT_SC.view[:],
+            "QIENT_SC": state.output.QIENT_SC.view[:],
+            "umf_inv": state.output.umf_inv.view[:],
+            "dcm_inv": state.output.dcm_inv.view[:],
+            "qtflx_inv": state.output.qtflx_inv.view[:],
+            "slflx_inv": state.output.slflx_inv.view[:],
+            "uflx_inv": state.output.uflx_inv.view[:],
+            "vflx_inv": state.output.vflx_inv.view[:],
+            "qvten_inv": state.output.qvten_inv.view[:],
+            "qlten_inv": state.output.qlten_inv.view[:],
+            "qiten_inv": state.output.qiten_inv.view[:],
+            "tten_inv": state.output.tten_inv.view[:],
+            "uten_inv": state.output.uten_inv.view[:],
+            "vten_inv": state.output.vten_inv.view[:],
+            "qrten_inv": state.output.qrten_inv.view[:],
+            "qsten_inv": state.output.qsten_inv.view[:],
+            "cufrc_inv": state.output.cufrc_inv.view[:],
+            "fer_inv": state.output.fer_inv.view[:],
+            "fdr_inv": state.output.fdr_inv.view[:],
+            "ndrop_inv": state.output.ndrop_inv.view[:],
+            "nice_inv": state.output.nice_inv.view[:],
+            "qldet_inv": state.output.qldet_inv.view[:],
+            "qlsub_inv": state.output.qlsub_inv.view[:],
+            "qidet_inv": state.output.qidet_inv.view[:],
+            "qisub_inv": state.output.qisub_inv.view[:],
+            "tpert_out": state.output.tpert_out.view[:],
+            "qpert_out": state.output.qpert_out.view[:],
             "dotransport": config.dotransport,
-            "cush": cush.view[:],
+            "cush": state.input_output.cush.view[:],
         }
