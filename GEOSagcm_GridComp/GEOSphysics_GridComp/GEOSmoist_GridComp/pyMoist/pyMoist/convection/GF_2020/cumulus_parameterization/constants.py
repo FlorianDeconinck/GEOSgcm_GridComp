@@ -27,7 +27,7 @@ MAXENS1 = Int(1)  # ensemble one on cap_max
 MAXENS2 = Int(1)  # ensemble two on precip efficiency
 MAXENS3 = Int(16)  # ensemble three done in cup_forcing_ens16 for G3d
 
-# other miscelaneous constants which control code flow
+# other miscellaneous constants which control code flow
 # NOTE changing these constants will likely trigger unimplemented code errors
 USE_LCL = False
 AEROEVAP = Int(1)

@@ -16,13 +16,13 @@ def check_config(
 
     if cumulus_parameterization_config.SATURATION_CALCULATION_CHOICE != 1:
         ndsl_log.warning(
-            " GF2020-->CumulusParameterization-->environmental_conditions construced with"
+            " GF2020-->CumulusParameterization-->environmental_conditions constructed with"
             "untested SATURATION_CALCULATION_CHOICE option. Running untested code... proceed with caution"
         )
 
     if cumulus_parameterization_config.CLOUD_LEVEL_GRID != 1:
         ndsl_log.warning(
-            " GF2020-->CumulusParameterization-->environmental_cloud_levels construced with "
+            " GF2020-->CumulusParameterization-->environmental_cloud_levels constructed with "
             "untested CLOUD_LEVEL_GRID option. Running untested code... proceed with caution"
         )
 
@@ -182,14 +182,14 @@ def check_config(
     if cumulus_parameterization_config.ZERO_DIFF == 1:
         raise NotImplementedError(
             "[NDSL] GF2020-->CumulusParameterization initialized with ZERO_DIFF = 1. This combination"
-            "requires an unimplemented porion of UpdraftMassFlux. Please implement, then disable this error"
+            "requires an unimplemented portion of UpdraftMassFlux. Please implement, then disable this error"
             "manually to proceed."
         )
 
     if cumulus_parameterization_config.ENABLE_SHALLOW == 1:
         raise NotImplementedError(
             "[NDSL] GF2020-->CumulusParameterization initialized with shallow plume enabled. This requires"
-            "an unimplemented porion of UpdraftMassFlux. Please implement, then disable this error"
+            "an unimplemented portion of UpdraftMassFlux. Please implement, then disable this error"
             "manually to proceed."
         )
 
@@ -239,69 +239,69 @@ def check_config(
     if config.APPLY_SUBSIDENCE_MICROPHYSICS != 0:
         raise NotImplementedError(
             "[NDSL] GF2020-->CumulusParameterization initialized with APPLY_SUBSIDENCE_MICROPHYSICS != 0."
-            "This setting requires an unimeplemented option in EnvironmentalSubsidence. Please implement,"
+            "This setting requires an unimplemented option in EnvironmentalSubsidence. Please implement,"
             "then disable this error manually to proceed."
         )
 
     if cumulus_parameterization_config.DIURNAL_CYCLE not in (1, 6):
         raise NotImplementedError(
             "[NDSL] GF2020-->CumulusParameterization initialized with DIURNAL_CYCLE != 1 or 6. This"
-            "setting requires one or more unimeplemented options in LargeScaleForcing. Please"
+            "setting requires one or more unimplemented options in LargeScaleForcing. Please"
             "implement, then disable this error manually to proceed."
         )
 
     if cumulus_parameterization_config.ENABLE_SHALLOW == 1:
         raise NotImplementedError(
             "[NDSL] GF2020-->CumulusParameterization initialized with shallow plume enabled. This requires"
-            "an unimeplemented functions in LargeScaleForcing. Please implement, then disable"
+            "an unimplemented functions in LargeScaleForcing. Please implement, then disable"
             "this error manually to proceed."
         )
 
     if cumulus_parameterization_config.ENABLE_SHALLOW == 1:
         raise NotImplementedError(
             "[NDSL] GF2020-->CumulusParameterization initialized with shallow plume enabled. This requires"
-            "an umplemented portion of ensemble_output_and_feedback. Please impelment, then disable this"
+            "an unimplemented portion of ensemble_output_and_feedback. Please implement, then disable this"
             "error manually to proceed."
         )
 
     if not COUPLE_MICROPHYSICS:
         raise NotImplementedError(
             "[NDSL] GF2020-->CumulusParameterization initialized with COUPLE_MICROPHYSICS != True. This"
-            "setting requires an unimeplemented option in cloud_dissipation. Please implement, then"
+            "setting requires an unimplemented option in cloud_dissipation. Please implement, then"
             "disable this error manually to proceed."
         )
 
     if not cumulus_parameterization_config.LIGHTNING_DIAGNOSTICS:
         raise NotImplementedError(
             "[NDSL] GF2020-->CumulusParameterization initialized with LIGHTNING_DIAGNOSTICS != True. This"
-            "setting requires unimeplemented functions. Please implement, then disable this error manually"
+            "setting requires unimplemented functions. Please implement, then disable this error manually"
             "to proceed."
         )
 
     if not cumulus_parameterization_config.USE_TRACER_SCAVENGE:
         raise NotImplementedError(
             "[NDSL] GF2020-->CumulusParameterization-->AtmosphericComposition initialized with"
-            "USE_TRACER_SCAVENGE != 1. This setting requires unimeplemented options in updraft_chemistry."
+            "USE_TRACER_SCAVENGE != 1. This setting requires unimplemented options in updraft_chemistry."
             "Please implement, then disable this error manually to proceed."
         )
 
     if cumulus_parameterization_config.USE_FLUX_FORM != 1:
         raise NotImplementedError(
             "[NDSL] GF2020-->CumulusParameterization-->AtmosphericComposition initialized with"
-            "USE_FLUX_FORM != 1. This setting requires one or more unimeplemented options in"
+            "USE_FLUX_FORM != 1. This setting requires one or more unimplemented options in"
             "vertical_transport_part_1. Please implement, then disable this error manually to proceed."
         )
 
     if cumulus_parameterization_config.ALP1 == 0:
         raise NotImplementedError(
             "[NDSL] GF2020-->CumulusParameterization-->AtmosphericComposition initialized with"
-            "ALP1 == 0. This setting requires an unimeplemented option in vertical_transport_part_1."
+            "ALP1 == 0. This setting requires an unimplemented option in vertical_transport_part_1."
             "Please implement, then disable this error manually to proceed."
         )
 
     if not WRTGRADS:
         raise NotImplementedError(
             "[NDSL] GF2020-->CumulusParameterization initialized with WRTGRADS = True. This setting requires"
-            "the unimeplemented GATE sounding capabilities (in the GATESounding class). Please implement,"
+            "the unimplemented GATE sounding capabilities (in the GATESounding class). Please implement,"
             "then disable this error manually to proceed."
         )
