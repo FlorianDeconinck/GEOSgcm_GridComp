@@ -372,8 +372,8 @@ def ensemble_forcing_mid_plume(
             if updraft_origin_level[0, 0][plume] < pbl_level + 1:
                 trash = max(
                     (
-                        cloud_moist_static_energy_forced.at(K=updraft_lfc_level)
-                        - environment_moist_static_energy_cloud_levels_forced.at(K=updraft_lfc_level)
+                        cloud_moist_static_energy_forced.at(K=updraft_lfc_level[0, 0][plume])
+                        - environment_moist_static_energy_cloud_levels_forced.at(K=updraft_lfc_level[0, 0][plume])
                     ),
                     1.0e1,
                 )
