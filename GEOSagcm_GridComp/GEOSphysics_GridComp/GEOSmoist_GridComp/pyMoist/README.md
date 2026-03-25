@@ -26,7 +26,7 @@ Note: bit to bit equivalence is not possible considering the targeted hardware a
 
 ## Interface to Fortran
 
-The `fortran` contains the hook to the MAPL-powered Fortan-Python bridge
+The `fortran` contains the hook to the MAPL-powered Fortran-Python bridge
 
 ## Contributing
 
