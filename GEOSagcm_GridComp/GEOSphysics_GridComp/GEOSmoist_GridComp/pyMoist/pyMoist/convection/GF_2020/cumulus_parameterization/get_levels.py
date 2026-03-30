@@ -340,7 +340,7 @@ def set_start_level(lcl_level: IntFieldIJ_Plume, start_level: IntFieldIJ, plume:
         start_level (IntFieldIJ)
         plume (Int)
     """
-    with computation(FORWARD), interval(...):
+    with computation(FORWARD), interval(0, 1):
         start_level = lcl_level[0, 0][plume]
 
 
