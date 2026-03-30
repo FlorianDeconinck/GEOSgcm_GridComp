@@ -432,11 +432,6 @@ def get_convective_cloud_base_level(
     with computation(PARALLEL), interval(...):
         # prefill some fields
         cloud_moist_static_energy_forced_transported = 0.0
-        dby = 0.0
-
-        # make garbage field so the get_cloud_boundary_conditions call does not break
-        # this is never touched so long as compute_perturbation=False
-        dummy_field_no_read = 0.0
 
     with computation(FORWARD), interval(0, 1):
         # internal constants
