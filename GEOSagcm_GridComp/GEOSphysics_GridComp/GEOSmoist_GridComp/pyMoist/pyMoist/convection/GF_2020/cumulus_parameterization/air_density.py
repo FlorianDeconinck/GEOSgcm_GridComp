@@ -21,7 +21,7 @@ def hydrostatic_air_density(
         plume (Int)
     """
     with computation(PARALLEL), interval(...):
-        # prefil with 0
+        # prefill with 0
         air_density = 0.0
 
     with computation(PARALLEL), interval(0, -1):

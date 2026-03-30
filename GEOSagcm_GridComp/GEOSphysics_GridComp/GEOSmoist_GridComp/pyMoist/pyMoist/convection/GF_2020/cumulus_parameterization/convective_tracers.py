@@ -226,7 +226,7 @@ def updraft_chemistry(
                         elif USE_TRACER_SCAVENGE == 2:
                             option_not_implemented = True
 
-                        # formulation 3 - orignal GF conv_par
+                        # formulation 3 - original GF conv_par
                         elif USE_TRACER_SCAVENGE == 3:
                             option_not_implemented = True
 
@@ -311,7 +311,7 @@ def downdraft_chemistry(
 
     with computation(FORWARD), interval(0, 1):
         if plume != cumulus_parameterization_constants.SHALLOW and error_code[0, 0][plume] == 0:
-            # fration of the total rain that was evaporated
+            # fraction of the total rain that was evaporated
             evaporation_fraction: FloatFieldIJ = -total_normalized_integrated_evaporate_forced / (
                 1.0e-16 + total_normalized_integrated_condensate_forced[0, 0][plume]
             )
@@ -956,7 +956,7 @@ class AtmosphericComposition(NDSLRuntime):
             and self.cumulus_parameterization_config.ALP1 > 0.0
         ):
             for tracer in range(self.config.NUMBER_OF_TRACERS):
-                # NOTE, this code is an extention of the vertical transport section for option
+                # NOTE, this code is an extension of the vertical transport section for option
                 # which executes when (USE_FLUX_FORM == 1 and ALP1 > 0.0)
                 self._tridiag(
                     m=cloud_top_level,

@@ -92,7 +92,7 @@ def set_plume_dependent_fields(
         ) + cumulus_parameterization_constants.XLV * (subgrid_scale_forcing_vapor + grid_scale_forcing_vapor)
 
 
-def prefil_internal_fields(
+def prefill_internal_fields(
     plume: Int,
     maximum_updraft_origin_level: IntFieldIJ,
     kstabm: IntFieldIJ_Plume,
@@ -361,7 +361,7 @@ def epsilon_min_max(
 def calculate_arbitrary_numerical_parameter(
     arbitrary_numerical_parameter: FloatFieldIJ,
 ):
-    """Set a scaling factor, used primarially (but not exclusively) for mass flux calculations.
+    """Set a scaling factor, used primarily (but not exclusively) for mass flux calculations.
 
     Args:
         arbitrary_numerical_parameter (FloatFieldIJ)
@@ -402,8 +402,8 @@ class Setup(NDSLRuntime):
             externals={"DT_MOIST": config.DT_MOIST},
         )
 
-        self._prefil_internal_fields = stencil_factory.from_dims_halo(
-            func=prefil_internal_fields,
+        self._prefill_internal_fields = stencil_factory.from_dims_halo(
+            func=prefill_internal_fields,
             compute_dims=[I_DIM, J_DIM, K_DIM],
             externals={
                 "CAP_MAXS": cumulus_parameterization_config.CAP_MAXS,
@@ -509,7 +509,7 @@ class Setup(NDSLRuntime):
         plume_dependent_constants = set_constants(self.cu_param_config, plume_dependent_constants, plume)
 
         if plume_dependent_constants.ENABLE_PLUME == 1:
-            # compute/prefil the last few fields needed for the rest of the scheme
+            # compute/prefill the last few fields needed for the rest of the scheme
             self._set_plume_dependent_fields(
                 t_excess=t_excess,
                 t_excess_local=t_excess_local,
@@ -530,7 +530,7 @@ class Setup(NDSLRuntime):
                 dmoist_static_energydt=dmoist_static_energydt,
             )
 
-            self._prefil_internal_fields(
+            self._prefill_internal_fields(
                 plume=plume_dependent_constants.PLUME_INDEX,
                 maximum_updraft_origin_level=maximum_updraft_origin_level,
                 kstabm=kstabm,

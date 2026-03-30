@@ -266,7 +266,7 @@ def downdraft_mass_flux(
             _, _min_loc = column_min(p_internal, 0, downdraft_origin_level[0, 0][plume])
             min_loc: IntFieldIJ = _min_loc
 
-            # this alpha constrains the location of the maximun ZU to be at "kb_adj" vertical level
+            # this alpha constrains the location of the maximum ZU to be at "kb_adj" vertical level
             alpha: FloatFieldIJ = 1.0 + (beta - 1.0) * (
                 (min_loc + 1) / (downdraft_origin_level[0, 0][plume] + 2)
             ) / (1.0 - ((min_loc + 1) / (downdraft_origin_level[0, 0][plume] + 2)))
@@ -1024,7 +1024,7 @@ def update_epsilon_forced(
     epsilon_forced: FloatFieldIJ_Plume,
     plume: Int,
 ):
-    """Tune precipitation effeciency (epsilon_computed) based on the scale dependence factor.
+    """Tune precipitation efficiency (epsilon_computed) based on the scale dependence factor.
 
     Args:
         error_code (IntFieldIJ_Plume)
@@ -1046,7 +1046,7 @@ def update_epsilon_forced(
 
 
 class DowndraftOriginLevel(NDSLRuntime):
-    """Determine the leve at which the downdraft begins."""
+    """Determine the level at which the downdraft begins."""
 
     def __init__(
         self,
@@ -1143,8 +1143,8 @@ class DowndraftWetBlub:
 
 
 class DowndraftWindShear(NDSLRuntime):
-    """Calculate wint shear within the downdraft. Quantify the effect of wind shear within the downdraft
-    on precipitation into a "precip effeciency" field (epsilon_computed).
+    """Calculate wind shear within the downdraft. Quantify the effect of wind shear within the downdraft
+    on precipitation into a "precip efficiency" field (epsilon_computed).
     """
 
     def __init__(

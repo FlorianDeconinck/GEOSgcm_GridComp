@@ -21,8 +21,8 @@ def parcel_moist_static_energy(
     ocean_fraction: FloatFieldIJ,
     updraft_origin_level: IntFieldIJ_Plume,
     p: FloatField,
-    environmenet_moist_static_energy: FloatField,
-    environmenet_moist_static_energy_forced: FloatField,
+    environment_moist_static_energy: FloatField,
+    environment_moist_static_energy_forced: FloatField,
     t_perturbation: FloatField,
     moist_static_energy_origin_level: FloatFieldIJ,
     moist_static_energy_origin_level_forced: FloatFieldIJ,
@@ -39,8 +39,8 @@ def parcel_moist_static_energy(
         ocean_fraction (FloatFieldIJ)
         updraft_origin_level (IntFieldIJ_Plume)
         p (FloatField)
-        environmenet_moist_static_energy (FloatField)
-        environmenet_moist_static_energy_forced (FloatField)
+        environment_moist_static_energy (FloatField)
+        environment_moist_static_energy_forced (FloatField)
         t_perturbation (FloatField)
         moist_static_energy_origin_level (FloatFieldIJ)
         moist_static_energy_origin_level_forced (FloatFieldIJ)
@@ -57,7 +57,7 @@ def parcel_moist_static_energy(
             ) + add_buoyancy
 
             moist_static_energy_origin_level = get_cloud_boundary_conditions(
-                field=environmenet_moist_static_energy,
+                field=environment_moist_static_energy,
                 scalar_perturbation=modification,
                 p=p,
                 updraft_origin_level=updraft_origin_level[0, 0][plume],
@@ -69,7 +69,7 @@ def parcel_moist_static_energy(
                 perturbation_field=t_perturbation,
             )
             moist_static_energy_origin_level_forced = get_cloud_boundary_conditions(
-                field=environmenet_moist_static_energy_forced,
+                field=environment_moist_static_energy_forced,
                 scalar_perturbation=modification,
                 p=p,
                 updraft_origin_level=updraft_origin_level[0, 0][plume],

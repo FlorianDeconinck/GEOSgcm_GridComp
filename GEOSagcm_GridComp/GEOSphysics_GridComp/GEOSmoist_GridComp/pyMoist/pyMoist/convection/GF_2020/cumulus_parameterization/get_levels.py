@@ -93,7 +93,7 @@ def find_highest_moist_static_energy_level(
         plume (Int)
     """
     with computation(FORWARD), interval(0, 1):
-        # prefil output
+        # prefill output
         updraft_origin_level[0, 0][plume] = 0
 
         if plume == cumulus_parameterization_constants.SHALLOW:

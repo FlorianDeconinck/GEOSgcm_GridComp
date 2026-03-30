@@ -10,7 +10,7 @@ from pyMoist.convection.GF_2020.cumulus_parameterization.plume_dependent_constan
 
 def convection_trigger(
     error_code: IntFieldIJ_Plume,
-    convective_scale_velosity: FloatFieldIJ,
+    convective_scale_velocity: FloatFieldIJ,
     cin_0: FloatFieldIJ,
     plume: Int,
 ):
@@ -18,7 +18,7 @@ def convection_trigger(
 
     Args:
         error_code (IntFieldIJ_Plume)
-        convective_scale_velosity (FloatFieldIJ)
+        convective_scale_velocity (FloatFieldIJ)
         cin_0 (FloatFieldIJ)
         plume (Int)
     """
@@ -28,7 +28,7 @@ def convection_trigger(
         if DICYCLE > 1:
             if error_code[0, 0][plume] == 0:
                 # think about including the grid scale vertical velocity at KE calculation
-                if cin_0 + 0.5 * convective_scale_velosity**2 < 0.0:
+                if cin_0 + 0.5 * convective_scale_velocity**2 < 0.0:
                     error_code[0, 0][plume] = 19
 
 
@@ -46,7 +46,7 @@ class XieTriggerFunction:
         if self.config.ADV_TRIGGER == 3 and (plume_dependent_constants.PLUME_INDEX in (1, 2)):
             raise NotImplementedError(
                 "[NDSL] GF2020-->CumulusParameterization-->XieTriggerFunction this code"
-                "has not been impemented. You should have been caught before getting here by the config"
+                "has not been implemented. You should have been caught before getting here by the config"
                 "checker. Beware, something likely failing in the config checker as well - you may be"
                 "unknowingly calling other untested/unimplemented sections."
             )

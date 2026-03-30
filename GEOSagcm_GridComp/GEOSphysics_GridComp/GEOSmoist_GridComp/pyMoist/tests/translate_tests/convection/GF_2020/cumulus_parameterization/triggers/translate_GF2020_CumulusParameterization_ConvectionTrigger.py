@@ -87,7 +87,7 @@ class TestCore:
         if plume_dependent_constants.ENABLE_PLUME == 1:
             code(
                 error_code=state.output.error_code,
-                convective_scale_velosity=state.input_output.convective_scale_velocity,
+                convective_scale_velocity=state.input_output.convective_scale_velocity,
                 cin_0=locals.cin_0,
                 plume=plume_dependent_constants.PLUME_INDEX,
             )

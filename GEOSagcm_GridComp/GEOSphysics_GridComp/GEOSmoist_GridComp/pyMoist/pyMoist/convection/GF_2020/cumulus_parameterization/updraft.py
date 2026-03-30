@@ -179,7 +179,7 @@ def updraft_mass_flux(
                 height_updraft: FloatFieldIJ = (
                     1.0 - ocean_fraction
                 ) * UPDRAFT_MAX_HEIGHT_LAND + ocean_fraction * UPDRAFT_MAX_HEIGHT_OCEAN
-                # add a randomic perturbation
+                # add a random perturbation
                 height_updraft = height_updraft + random_number
 
                 # height_updraft parameter goes from 0 to 1 = rainfall decreases with height_updraft
@@ -208,7 +208,7 @@ def updraft_mass_flux(
                 )
                 updraft_origin_level_adj = min(updraft_origin_level_adj, cloud_top_level[0, 0][plume] + 1)
 
-                # this alpha constrains the location of the maximun normalized_massflux_updraft_forced
+                # this alpha constrains the location of the maximum normalized_massflux_updraft_forced
                 # to be at "updraft_origin_level_adj" vertical level
                 alpha: FloatFieldIJ = 1.0 + (
                     (beta - 1.0)
@@ -925,7 +925,7 @@ class UpdraftMassFlux(NDSLRuntime):
         self.config = config
         self.cumulus_parameterization_config = cumulus_parameterization_config
 
-        # add dimension to quantityfactory and create classes for constants
+        # add dimension to quantity factory and create classes for constants
         quantity_factory.add_data_dimensions({"UpdraftMassFlux_constants": len(_X_ALPHA)})
 
         self._X_ALPHA: Local = quantity_factory.zeros(["UpdraftMassFlux_constants"], "n/a")

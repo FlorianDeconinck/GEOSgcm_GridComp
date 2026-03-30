@@ -64,7 +64,7 @@ from pyMoist.convection.GF_2020.cumulus_parameterization.plume_dependent_constan
 )
 from pyMoist.convection.GF_2020.cumulus_parameterization.precip import (
     PrecipFactor,
-    cloud_dissapation,
+    cloud_dissipation,
     get_precip_fluxes,
     partition_liquid_ice,
     rain_evaporation_below_cloud_base,
@@ -206,7 +206,7 @@ class GF2020CumulusParameterization(NDSLRuntime):
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
-        self._find_detrainmet_start_level = stencil_factory.from_dims_halo(
+        self._find_detrainment_start_level = stencil_factory.from_dims_halo(
             func=find_detrainment_start_level,
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
@@ -263,7 +263,7 @@ class GF2020CumulusParameterization(NDSLRuntime):
             },
         )
 
-        self._downdraft_entraiment_profiles = stencil_factory.from_dims_halo(
+        self._downdraft_entrainment_profiles = stencil_factory.from_dims_halo(
             func=downdraft_entrainment_profiles,
             compute_dims=[I_DIM, J_DIM, K_DIM],
             externals={"DOWNDRAFT": cumulus_parameterization_config.DOWNDRAFT},
@@ -481,7 +481,7 @@ class GF2020CumulusParameterization(NDSLRuntime):
             cumulus_parameterization_config=cumulus_parameterization_config,
         )
 
-        self._update_workfunction_and_precipitaiton_ensemble = UpdateWorkfunctionAndPrecipitationEnsemble(
+        self._update_workfunction_and_precipitation_ensemble = UpdateWorkfunctionAndPrecipitationEnsemble(
             stencil_factory=stencil_factory,
             quantity_factory=quantity_factory,
             config=config,
@@ -521,8 +521,8 @@ class GF2020CumulusParameterization(NDSLRuntime):
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
-        self._cloud_dissapation = stencil_factory.from_dims_halo(
-            func=cloud_dissapation,
+        self._cloud_dissipation = stencil_factory.from_dims_halo(
+            func=cloud_dissipation,
             compute_dims=[I_DIM, J_DIM, K_DIM],
             externals={
                 "USE_CLOUD_DISSIPATION": cumulus_parameterization_config.USE_CLOUD_DISSIPATION,
@@ -814,7 +814,7 @@ class GF2020CumulusParameterization(NDSLRuntime):
                     plume=self.plume_dependent_constants.PLUME_INDEX,
                 )
 
-                self._find_detrainmet_start_level(
+                self._find_detrainment_start_level(
                     geopotential_height=self.locals.geopotential_height_cloud_levels_forced,
                     topography_height_no_negative=state.input_output.topography_height_no_negative,
                     error_code=state.output.error_code,
@@ -884,8 +884,8 @@ class GF2020CumulusParameterization(NDSLRuntime):
                     ocean_fraction=state.input.ocean_fraction,
                     updraft_origin_level=state.output.updraft_origin_level,
                     p=state.input_output.p_forced,
-                    environmenet_moist_static_energy=self.locals.environment_moist_static_energy_cloud_levels,
-                    environmenet_moist_static_energy_forced=self.locals.environment_moist_static_energy_cloud_levels_forced,
+                    environment_moist_static_energy=self.locals.environment_moist_static_energy_cloud_levels,
+                    environment_moist_static_energy_forced=self.locals.environment_moist_static_energy_cloud_levels_forced,
                     t_perturbation=state.output.t_perturbation,
                     moist_static_energy_origin_level=self.locals.moist_static_energy_origin_level,
                     moist_static_energy_origin_level_forced=self.locals.moist_static_energy_origin_level_forced,
@@ -956,7 +956,7 @@ class GF2020CumulusParameterization(NDSLRuntime):
                 # NOTE      deep ✅
                 # NOTE      mid ✅
                 # NOTE      shallow ✅
-                self._downdraft_entraiment_profiles(
+                self._downdraft_entrainment_profiles(
                     lateral_entrainment_rate=state.input.lateral_entrainment_rate,
                     entrainment_rate_downdraft=self.locals.entrainment_rate_downdraft,
                     detrainment_function_downdraft=self.locals.detrainment_function_downdraft,
@@ -977,8 +977,8 @@ class GF2020CumulusParameterization(NDSLRuntime):
                     ocean_fraction=state.input.ocean_fraction,
                     updraft_origin_level=state.output.updraft_origin_level,
                     p=state.input_output.p_forced,
-                    environmenet_moist_static_energy=self.locals.environment_moist_static_energy_cloud_levels,
-                    environmenet_moist_static_energy_forced=self.locals.environment_moist_static_energy_cloud_levels_forced,
+                    environment_moist_static_energy=self.locals.environment_moist_static_energy_cloud_levels,
+                    environment_moist_static_energy_forced=self.locals.environment_moist_static_energy_cloud_levels_forced,
                     t_perturbation=state.output.t_perturbation,
                     moist_static_energy_origin_level=self.locals.moist_static_energy_origin_level,
                     moist_static_energy_origin_level_forced=self.locals.moist_static_energy_origin_level_forced,
@@ -1516,12 +1516,12 @@ class GF2020CumulusParameterization(NDSLRuntime):
                 # NOTE      shallow ✅
                 self._convection_trigger(
                     error_code=state.output.error_code,
-                    convective_scale_velosity=state.input_output.convective_scale_velocity,
+                    convective_scale_velocity=state.input_output.convective_scale_velocity,
                     cin_0=self.locals.cin_0,
                     plume=self.plume_dependent_constants.PLUME_INDEX,
                 )
 
-                # calculate downdraft air temperature for vertical velocitys
+                # calculate downdraft air temperature for vertical velocities
                 # NOTE test GF2020_CumulusParameterization_DowndraftTemperature_{plume}:
                 # NOTE      deep ✅
                 # NOTE      mid ✅
@@ -1814,7 +1814,7 @@ class GF2020CumulusParameterization(NDSLRuntime):
                 # NOTE      deep ✅
                 # NOTE      mid ✅
                 # NOTE      shallow ✅
-                self._update_workfunction_and_precipitaiton_ensemble(
+                self._update_workfunction_and_precipitation_ensemble(
                     error_code=state.output.error_code,
                     updraft_origin_level=state.output.updraft_origin_level,
                     updraft_lfc_level=state.output.updraft_lfc_level,
@@ -1995,7 +1995,7 @@ class GF2020CumulusParameterization(NDSLRuntime):
                 # NOTE      deep ✅
                 # NOTE      mid ✅
                 # NOTE      shallow ✅
-                self._cloud_dissapation(
+                self._cloud_dissipation(
                     error_code=state.output.error_code,
                     updraft_lfc_level=state.output.updraft_lfc_level,
                     cloud_top_level=state.output.cloud_top_level,

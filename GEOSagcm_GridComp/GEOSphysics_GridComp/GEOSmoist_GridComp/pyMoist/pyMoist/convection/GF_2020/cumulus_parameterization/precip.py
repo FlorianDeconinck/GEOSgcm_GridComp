@@ -351,7 +351,7 @@ def rain_evaporation_below_cloud_base(
                 precip[0, 0][plume] = precip[0, 0][plume] - evaporation_below_cloud_base
 
 
-def cloud_dissapation(
+def cloud_dissipation(
     error_code: IntFieldIJ_Plume,
     updraft_lfc_level: IntFieldIJ_Plume,
     cloud_top_level: IntFieldIJ_Plume,
@@ -422,7 +422,7 @@ def cloud_dissapation(
                 / (hydrostatic_air_density * vertical_velocity_3d)
             )
 
-            # source of enviroment moistening/cooling due to the 'remained' cloud dissipation into it.
+            # source of environment moistening/cooling due to the 'remained' cloud dissipation into it.
             out_precip_dissipation = (precip_dissipation * (1.0 - f_rh)) / cloud_lifetime
 
             # NOTE other option (if this is true) is not implemented

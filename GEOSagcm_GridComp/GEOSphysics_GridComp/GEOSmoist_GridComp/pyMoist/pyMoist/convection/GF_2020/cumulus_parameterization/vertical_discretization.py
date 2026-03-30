@@ -84,7 +84,7 @@ def convective_transport_of_momentum(
     ddv: FloatField,
     plume: Int,
 ):
-    """Compute u & v tendnecies - the effect of convection on the state wind field. These tencencies are not
+    """Compute u & v tendencies - the effect of convection on the state wind field. These tendencies are not
     directly used to update the overarching model state, but are the first step in that process.
 
     Args:
@@ -167,7 +167,7 @@ def convective_transport_of_momentum(
             and VERTICAL_DISCRETIZATION_OPTION == 1
             and ALP1 > 0.0
             and K <= cloud_top_level[0, 0][plume] + 2
-        ):  # time alp0*explict + alp1*implicit + upstream
+        ):  # time alp0*explicit + alp1*implicit + upstream
             alp0 = 1.0 - ALP1
             fp = 0.5 * (environment_massflux + abs(environment_massflux))
             fm = 0.5 * (environment_massflux - abs(environment_massflux))
@@ -395,7 +395,7 @@ def convective_transport_of_water_vapor_and_condensates(
     plume: Int,
 ):
     """Compute cloud liquid and vapor tendencies - the effect of convection on environmental water,
-    and the contribution from environmental subsidence. These tencencies are not
+    and the contribution from environmental subsidence. These tendencies are not
     directly used to update the overarching model state, but are the first step in that process.
 
     Args:
@@ -599,7 +599,7 @@ def convective_transport_of_water_vapor_and_condensates(
 
     with computation(PARALLEL), interval(...):
         if error_code[0, 0][plume] == 0 and K <= cloud_top_level[0, 0][plume]:
-            # add the contribuition from the environmental subsidence
+            # add the contribution from the environmental subsidence
             del_vapor_cloud_ensemble = del_vapor_cloud_ensemble + subsidence_tendency
 
             # for output only

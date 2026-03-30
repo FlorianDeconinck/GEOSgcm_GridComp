@@ -17,7 +17,7 @@ from pyMoist.convection.GF_2020.cumulus_parameterization.locals import GF2020Cum
 from pyMoist.convection.GF_2020.cumulus_parameterization.plume_dependent_constants import (
     GF2020PlumeDependentConstants,
 )
-from pyMoist.convection.GF_2020.cumulus_parameterization.precip import cloud_dissapation
+from pyMoist.convection.GF_2020.cumulus_parameterization.precip import cloud_dissipation
 from pyMoist.convection.GF_2020.cumulus_parameterization.setup.set_constants import set_constants
 from pyMoist.convection.GF_2020.cumulus_parameterization.state import GF2020CumulusParameterizationState
 
@@ -121,7 +121,7 @@ class TestCore:
         state.output.dcloudicedt.data[:, :, :, plume_dependent_constants.PLUME_INDEX] = inputs["dcloudicedt"]
 
         code = self.stencil_factory.from_dims_halo(
-            func=cloud_dissapation,
+            func=cloud_dissipation,
             compute_dims=[I_DIM, J_DIM, K_DIM],
             externals={
                 "USE_CLOUD_DISSIPATION": cumulus_parameterization_config.USE_CLOUD_DISSIPATION,

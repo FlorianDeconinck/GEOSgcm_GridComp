@@ -158,7 +158,7 @@ def get_interp(
         t_new (Float)
         vapor_forced (Float)
     """
-    # bunch of interal constants, not to be used outside of this function
+    # bunch of internal constants, not to be used outside of this function
     rd = 287.06
     rv = 461.52
     rcpd = 1004.71
