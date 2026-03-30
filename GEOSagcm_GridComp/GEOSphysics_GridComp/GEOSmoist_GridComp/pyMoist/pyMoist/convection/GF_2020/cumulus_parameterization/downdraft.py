@@ -936,7 +936,7 @@ def downdraft_windshear(
 
 
     with computation(FORWARD), interval(...):
-        if plume != 0 and error_code[0, 0][plume] == 0 and K > updraft_lfc_level[0, 0][plume] and K <= cloud_top_level[0, 0][plume]:
+        if plume != 0 and error_code[0, 0][plume] == 0 and K >= updraft_lfc_level[0, 0][plume] and K <= cloud_top_level[0, 0][plume]:
             dp = p_forced - p_forced[0, 0, 1]
             vws = (
                 vws

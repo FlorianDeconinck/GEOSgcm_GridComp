@@ -1573,8 +1573,8 @@ class GF2020CumulusParameterization(NDSLRuntime):
 
                 # determine downdraft strength in terms of windshear
                 # NOTE test GF2020_CumulusParameterization_DowndraftWindShear_{plume}:
-                # NOTE      deep ❌ one field - three points, used to be ✅
-                # NOTE      mid ❌ one field 14 pointss, used to be ❌ one field, one point (0.17%), 4 ULP
+                # NOTE      deep ✅
+                # NOTE      mid ✅
                 # NOTE      shallow ✅
                 self._downdraft_windshear(
                     error_code=state.output.error_code,
