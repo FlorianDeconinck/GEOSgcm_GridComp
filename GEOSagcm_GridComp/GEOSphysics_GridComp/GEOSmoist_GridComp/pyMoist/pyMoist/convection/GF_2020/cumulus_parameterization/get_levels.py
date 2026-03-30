@@ -440,7 +440,6 @@ def get_convective_cloud_base_level(
 
         # prefill some fields / initialize some 2d temporaries
         start_level_internal: IntFieldIJ = 0
-        cap_max_internal = cap_max
         found_level: BoolFieldIJ = False
 
     with computation(FORWARD), interval(0, 1):
@@ -462,6 +461,7 @@ def get_convective_cloud_base_level(
         updraft_lfc_level[0, 0][plume] = maximum_updraft_origin_level + 3
         negative_buoyancy_depth = 0.0
         frh_lfc = 0.0
+        cap_max_internal = cap_max
         if error_code[0, 0][plume] == 0:
             continue_outer_while_loop = True
             while error_code[0, 0][plume] == 0 and continue_outer_while_loop == True:
