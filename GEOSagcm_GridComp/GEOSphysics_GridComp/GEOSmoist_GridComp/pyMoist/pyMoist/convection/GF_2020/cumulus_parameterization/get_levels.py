@@ -438,12 +438,9 @@ def get_convective_cloud_base_level(
         frh_crit_O = 0.7
         frh_crit_L = 0.7
 
-        # prefill some fields
+        # prefill some fields / initialize some 2d temporaries
         start_level_internal: IntFieldIJ = 0
         cap_max_internal = cap_max
-
-        # initialize some 2d temporaries
-        dzh: FloatFieldIJ = 0.0
         found_level: BoolFieldIJ = False
 
     with computation(FORWARD), interval(0, 1):
@@ -518,7 +515,7 @@ def get_convective_cloud_base_level(
 
                     if MOIST_TRIGGER == 1:
                         frh_lfc = 0.0
-                        dzh = 0
+                        dzh = 0.0
                         level = updraft_origin_level[0, 0][plume]
                         while level <= updraft_lfc_level[0, 0][plume]:
                             dz = (
