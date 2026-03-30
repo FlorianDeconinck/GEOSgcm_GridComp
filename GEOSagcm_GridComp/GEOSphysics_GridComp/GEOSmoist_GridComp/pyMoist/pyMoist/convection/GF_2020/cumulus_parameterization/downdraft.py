@@ -91,15 +91,15 @@ def get_downdraft_origin_level(
     MINIMUM_DEPTH: Float,
     plume: Int,
 ):
-    """Determine the leve at which the downdraft begins.
+    """Determine the level at which the downdraft begins.
     For shallow plume, return 0 (downdraft is disabled). For mid and deep plume, perform full calculation.
 
     This stencil contains an open-ended vertical solver with a nested vertical loop.
-    To implement this properly, the aforrementioned computation has been constructed on an interval(0, 1),
+    To implement this properly, the aforementioned computation has been constructed on an interval(0, 1),
     and all K read/writes have been done with absolute indexes or relative offsets. The alternative is
     to break this into a series of stencils and pass data between them using a much larger number of locals.
 
-    Following a decision made in a prior section of the GF2020 cumulus parameterizaiton core
+    Following a decision made in a prior section of the GF2020 cumulus parameterization core
     see (get_convective_cloud_base_level), this has been implemented as one stencil using the inefficient
     interval to preserve code readability and facilitate an easy future transition to another implementation,
     once the required tool/feature has been implemented.

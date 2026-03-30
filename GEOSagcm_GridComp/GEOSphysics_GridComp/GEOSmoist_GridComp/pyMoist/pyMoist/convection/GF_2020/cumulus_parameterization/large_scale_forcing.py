@@ -408,7 +408,7 @@ def effective_precipitation(
     effective_condensate_to_fall_forced: FloatField,
     plume: Int,
 ):
-    """Compute the effective precipitation based on evaporation in the downdraft and precipitation effeciency
+    """Compute the effective precipitation based on evaporation in the downdraft and precipitation efficiency
     (which is dependent on wind shear).
 
     Args:

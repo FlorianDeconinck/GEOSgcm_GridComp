@@ -858,7 +858,7 @@ class AtmosphericComposition(NDSLRuntime):
             chemistry_tracers_total_pw_updraft (Quantity)
             chemistry_tracers_total_pw_downdraft (Quantity)
             convection_tracers (ConvectionTracers): Collection of tracers from the rest of the model which
-                will be updated within convection. These may come from a variaty of sources, and need to be
+                will be updated within convection. These may come from a variety of sources, and need to be
                 collected into the expected ConvectionTracers data type before being passed down.
             plume_dependent_constants (GF2020PlumeDependentConstants)
 

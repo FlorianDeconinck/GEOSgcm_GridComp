@@ -40,7 +40,7 @@ from pyMoist.convection.GF_2020.cumulus_parameterization.environment import (
 )
 from pyMoist.convection.GF_2020.cumulus_parameterization.get_levels import (
     cloud_top_checks,
-    find_detrainmet_start_level,
+    find_detrainment_start_level,
     find_highest_moist_static_energy_level,
     find_lcl,
     find_maximum_updraft_origin_level,
@@ -107,7 +107,7 @@ from pyMoist.saturation_tables.tables.main import SaturationVaporPressureTable
 
 class GF2020CumulusParameterization(NDSLRuntime):
     """GF220 cumulus parameterization core. This component of GF2020 contains all of the science code related
-    to deep conveection, including (but not limited to):
+    to deep convection, including (but not limited to):
         - updraft dynamics
         - downdraft dynamics
         - entrainment/detrainment
@@ -118,7 +118,7 @@ class GF2020CumulusParameterization(NDSLRuntime):
 
         Most pieces are called directly, but more complicated parts are buried into their own subclass.
 
-        Not all parts/options are fully implemented, some have been implemetned without full testing.
+        Not all parts/options are fully implemented, some have been implemented without full testing.
         ALL of these untested/unimplemented paths are locked behind an NotImplementedError, with an
         appropriate message pointing to the configuration option that is causing the error.
     """
@@ -207,7 +207,7 @@ class GF2020CumulusParameterization(NDSLRuntime):
         )
 
         self._find_detrainmet_start_level = stencil_factory.from_dims_halo(
-            func=find_detrainmet_start_level,
+            func=find_detrainment_start_level,
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
@@ -582,7 +582,7 @@ class GF2020CumulusParameterization(NDSLRuntime):
                 This state is initialized in the GF2020Setup class. The overarching model state cannot be
                 passed to the GF2020CumulusParameterizationState because of incompatible K-axis orientation.
             convection_tracers (ConvectionTracers): Collection of tracers from the rest of the model which
-                will be updated within convection. These may come from a variaty of sources, and need to be
+                will be updated within convection. These may come from a variety of sources, and need to be
                 collected into the expected ConvectionTracers data type before being passed down.
         """
         if self.cumulus_parameterization_config.SHALLOW_MID_DEEP:

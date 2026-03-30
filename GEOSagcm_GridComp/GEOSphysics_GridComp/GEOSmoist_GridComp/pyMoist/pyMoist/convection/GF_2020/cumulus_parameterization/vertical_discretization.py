@@ -270,7 +270,7 @@ def convective_transport_of_mse(
     plume: Int,
 ):
     """Compute moist static energy tendency - the effect of convection and environmental
-    subsidence on environmental moist static energy independently. This tencency is not
+    subsidence on environmental moist static energy independently. This tendency is not
     directly used to update the overarching model state, but is the first step in that process.
 
     Args:

@@ -100,7 +100,7 @@ class GF2020(NDSLRuntime):
         Args:
             state (GF2020State): State of the overarching model - not all fields from the model are required
             convection_tracers (ConvectionTracers): Collection of tracers from the rest of the model which
-                will be updated within convection. These may come from a variaty of sources, and need to be
+                will be updated within convection. These may come from a variety of sources, and need to be
                 collected into the expected ConvectionTracers data type before being passed down.
         """
         # flag to stop convection scheme for single column models

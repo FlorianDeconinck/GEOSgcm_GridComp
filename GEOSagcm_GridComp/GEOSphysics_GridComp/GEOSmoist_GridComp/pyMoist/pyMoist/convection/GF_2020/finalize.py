@@ -170,7 +170,7 @@ def feedback(
     directions, and further calculations may be performed on one or more of these outputs before this flip
     and final exchange is performed.
 
-    These could be condensed, but have been kept separate for readibility and clarity.
+    These could be condensed, but have been kept separate for readability and clarity.
 
     Args:
         fix_out_vapor (FloatFieldIJ)
@@ -1228,7 +1228,7 @@ class GF2020Finalize(NDSLRuntime):
             cumulus_parameterization_state (GF2020CumulusParameterizationState): NDSL State containing all
                 fields required for the CumulusParameterization.
             convection_tracers (ConvectionTracers): Collection of tracers from the rest of the model which
-                will be updated within convection. These may come from a variaty of sources, and need to be
+                will be updated within convection. These may come from a variety of sources, and need to be
                 collected into the expected ConvectionTracers data type before being passed down.
         """
 

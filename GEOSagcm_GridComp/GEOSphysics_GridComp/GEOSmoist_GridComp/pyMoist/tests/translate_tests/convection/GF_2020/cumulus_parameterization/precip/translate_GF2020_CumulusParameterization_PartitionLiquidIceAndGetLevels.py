@@ -14,7 +14,7 @@ from pyMoist.convection.GF_2020.cumulus_parameterization.constants import (
     NUMBER_OF_PLUMES,
 )
 from pyMoist.convection.GF_2020.cumulus_parameterization.get_levels import (
-    find_detrainmet_start_level,
+    find_detrainment_start_level,
     find_maximum_updraft_origin_level,
 )
 from pyMoist.convection.GF_2020.cumulus_parameterization.locals import GF2020CumulusParameterizationLocals
@@ -114,7 +114,7 @@ class TestCore:
         )
 
         code_part_3 = self.stencil_factory.from_dims_halo(
-            func=find_detrainmet_start_level,
+            func=find_detrainment_start_level,
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 

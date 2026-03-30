@@ -87,7 +87,7 @@ def melting_profile(
 
 class C1DProfile:
     """
-    C1D Profile generator. This code is manually diables with a
+    C1D Profile generator. This code is manually disables with a
     "do not enable" note in fortran, so it is not going to be completed until specifically requested.
     """
 
