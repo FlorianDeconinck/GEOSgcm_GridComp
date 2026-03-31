@@ -167,7 +167,6 @@ class GF2020CumulusParameterization(NDSLRuntime):
         # initialize all the subclasses
         self._setup = Setup(
             stencil_factory=stencil_factory,
-            quantity_factory=quantity_factory,
             config=config,
             cumulus_parameterization_config=cumulus_parameterization_config,
         )
@@ -400,14 +399,12 @@ class GF2020CumulusParameterization(NDSLRuntime):
 
         self._updraft_initial_workfunctions = UpdraftInitialWorkfunctions(
             stencil_factory=stencil_factory,
-            quantity_factory=quantity_factory,
             config=config,
             cumulus_parameterization_config=cumulus_parameterization_config,
         )
 
         self._updraft_cin = UpdraftCIN(
             stencil_factory=stencil_factory,
-            quantity_factory=quantity_factory,
             config=config,
             cumulus_parameterization_config=cumulus_parameterization_config,
         )
@@ -437,7 +434,6 @@ class GF2020CumulusParameterization(NDSLRuntime):
 
         self._downdraft_windshear = DowndraftWindShear(
             stencil_factory=stencil_factory,
-            quantity_factory=quantity_factory,
             config=config,
             cumulus_parameterization_config=cumulus_parameterization_config,
         )
@@ -483,7 +479,6 @@ class GF2020CumulusParameterization(NDSLRuntime):
 
         self._update_workfunction_and_precipitation_ensemble = UpdateWorkfunctionAndPrecipitationEnsemble(
             stencil_factory=stencil_factory,
-            quantity_factory=quantity_factory,
             config=config,
             cumulus_parameterization_config=cumulus_parameterization_config,
         )

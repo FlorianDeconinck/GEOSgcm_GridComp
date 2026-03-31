@@ -114,7 +114,6 @@ class TestCore:
         # initialize test code
         code = UpdraftInitialWorkfunctions(
             stencil_factory=self.stencil_factory,
-            quantity_factory=self.quantity_factory,
             config=config,
             cumulus_parameterization_config=cumulus_parameterization_config,
         )

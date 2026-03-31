@@ -1150,7 +1150,6 @@ class DowndraftWindShear(NDSLRuntime):
     def __init__(
         self,
         stencil_factory: StencilFactory,
-        quantity_factory: QuantityFactory,
         config: GF2020Config,
         cumulus_parameterization_config: GF2020CumulusParameterizationConfig,
     ):
