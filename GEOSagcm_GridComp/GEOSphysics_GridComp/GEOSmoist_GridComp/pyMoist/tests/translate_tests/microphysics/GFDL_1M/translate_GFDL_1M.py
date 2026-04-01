@@ -17,8 +17,7 @@ class TranslateGFDL_1M(TranslateFortranData2Py):
         namelist: Namelist,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
-        self.stencil_factory = stencil_factory
+        super().__init__(grid, stencil_factory)
         self.quantity_factory = grid.quantity_factory
 
         # NOTE not all fields are associated in v11.5.2. fields which are not associated are not serialized,
