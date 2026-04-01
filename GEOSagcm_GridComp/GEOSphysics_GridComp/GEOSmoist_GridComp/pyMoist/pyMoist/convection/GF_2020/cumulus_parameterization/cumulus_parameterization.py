@@ -472,7 +472,6 @@ class GF2020CumulusParameterization(NDSLRuntime):
         )
         self._static_control = StaticControl(
             stencil_factory=stencil_factory,
-            quantity_factory=quantity_factory,
             config=config,
             cumulus_parameterization_config=cumulus_parameterization_config,
         )

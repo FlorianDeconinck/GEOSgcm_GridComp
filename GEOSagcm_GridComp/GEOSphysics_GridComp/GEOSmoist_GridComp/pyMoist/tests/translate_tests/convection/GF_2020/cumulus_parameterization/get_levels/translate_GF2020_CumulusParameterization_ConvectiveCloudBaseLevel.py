@@ -277,8 +277,6 @@ class TranslateGF2020_CumulusParameterization_ConvectiveCloudBaseLevel_shallow(T
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, stencil_factory)
-        self.stencil_factory = stencil_factory
-        self.quantity_factory = grid.quantity_factory
 
         self.test_core = TestCore(grid, stencil_factory, self.in_vars, self.out_vars)
 
@@ -300,8 +298,6 @@ class TranslateGF2020_CumulusParameterization_ConvectiveCloudBaseLevel_mid(Trans
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, stencil_factory)
-        self.stencil_factory = stencil_factory
-        self.quantity_factory = grid.quantity_factory
 
         self.test_core = TestCore(grid, stencil_factory, self.in_vars, self.out_vars)
 
@@ -323,8 +319,6 @@ class TranslateGF2020_CumulusParameterization_ConvectiveCloudBaseLevel_deep(Tran
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, stencil_factory)
-        self.stencil_factory = stencil_factory
-        self.quantity_factory = grid.quantity_factory
 
         self.test_core = TestCore(grid, stencil_factory, self.in_vars, self.out_vars)
 

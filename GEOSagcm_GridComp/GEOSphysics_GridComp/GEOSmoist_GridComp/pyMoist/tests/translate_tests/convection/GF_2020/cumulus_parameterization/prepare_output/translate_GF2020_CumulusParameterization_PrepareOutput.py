@@ -26,7 +26,6 @@ class TestCore:
     def __init__(
         self,
         grid: Grid,
-        namelist: Namelist,
         stencil_factory: StencilFactory,
         in_vars: dict,
         out_vars: dict,
@@ -210,14 +209,12 @@ class TranslateGF2020_CumulusParameterization_PrepareOutput_shallow(TranslateFor
     def __init__(
         self,
         grid: Grid,
-        namelist: Namelist,
+        _namelist: Namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, stencil_factory)
-        self.stencil_factory = stencil_factory
-        self.quantity_factory = grid.quantity_factory
 
-        self.test_core = TestCore(grid, namelist, stencil_factory, self.in_vars, self.out_vars)
+        self.test_core = TestCore(grid, stencil_factory, self.in_vars, self.out_vars)
 
     def extra_data_load(self, data_loader: DataLoader):
         self.constants = data_loader.load("GF2020-constants")
@@ -233,14 +230,12 @@ class TranslateGF2020_CumulusParameterization_PrepareOutput_mid(TranslateFortran
     def __init__(
         self,
         grid: Grid,
-        namelist: Namelist,
+        _namelist: Namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, stencil_factory)
-        self.stencil_factory = stencil_factory
-        self.quantity_factory = grid.quantity_factory
 
-        self.test_core = TestCore(grid, namelist, stencil_factory, self.in_vars, self.out_vars)
+        self.test_core = TestCore(grid, stencil_factory, self.in_vars, self.out_vars)
 
     def extra_data_load(self, data_loader: DataLoader):
         self.constants = data_loader.load("GF2020-constants")
@@ -256,14 +251,12 @@ class TranslateGF2020_CumulusParameterization_PrepareOutput_deep(TranslateFortra
     def __init__(
         self,
         grid: Grid,
-        namelist: Namelist,
+        _namelist: Namelist,
         stencil_factory: StencilFactory,
     ):
         super().__init__(grid, stencil_factory)
-        self.stencil_factory = stencil_factory
-        self.quantity_factory = grid.quantity_factory
 
-        self.test_core = TestCore(grid, namelist, stencil_factory, self.in_vars, self.out_vars)
+        self.test_core = TestCore(grid, stencil_factory, self.in_vars, self.out_vars)
 
     def extra_data_load(self, data_loader: DataLoader):
         self.constants = data_loader.load("GF2020-constants")

@@ -20,11 +20,10 @@ class TranslateGF2020_CumulusParameterization(TranslateFortranData2Py):
     def __init__(
         self,
         grid: Grid,
-        namelist: Namelist,
+        _namelist: Namelist,
         stencil_factory: StencilFactory,
     ):
-        super().__init__(grid, namelist, stencil_factory)
-        self.stencil_factory = stencil_factory
+        super().__init__(grid, stencil_factory)
         self.quantity_factory = grid.quantity_factory
 
         self.in_vars["data_vars"] = {}
