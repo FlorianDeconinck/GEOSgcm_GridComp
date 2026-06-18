@@ -8,6 +8,7 @@ import pyMoist.constants as constants
 import pyMoist.convection.GF_2020.cumulus_parameterization.constants as cumulus_parameterization_constants
 from pyMoist.convection.GF_2020.config import GF2020Config
 from pyMoist.convection.GF_2020.cumulus_parameterization.config import GF2020CumulusParameterizationConfig
+from pyMoist.convection.GF_2020.cumulus_parameterization.constants import Plumes
 from pyMoist.convection.GF_2020.cumulus_parameterization.field_types import (
     FloatField_ConvectionTracers,
     FloatField_ConvectionTracers_Plume,
@@ -870,7 +871,13 @@ def update_state_with_tendencies(
         # add liquid/ice/cloud fraction tendencies
         convective_liquid = convective_liquid + dliquiddt_deep_convection * DT_MOIST
         convective_ice = convective_ice + dicedt_deep_convection * DT_MOIST
-        convective_cloud_fraction = max(min(convective_cloud_fraction + dcloudfractiondt_deep_convection * DT_MOIST, 1.0), 0.0)
+        convective_cloud_fraction = max(
+            min(
+                convective_cloud_fraction + dcloudfractiondt_deep_convection * DT_MOIST,
+                1.0,
+            ),
+            0.0,
+        )
 
         # fix convective cloud fraction
         if FIX_CONVECTIVE_CLOUD:
@@ -942,6 +949,11 @@ class GF2020Finalize(NDSLRuntime):
     for the sake of readibility.
     """
 
+    def _plume_status(plume_number: int) -> bool:
+        if plume_number == 0:
+            return False
+        return True
+
     def __init__(
         self,
         stencil_factory: StencilFactory,
@@ -953,11 +965,7 @@ class GF2020Finalize(NDSLRuntime):
         super().__init__(stencil_factory)
 
         # make status of plumes visible at runtime
-        self._plume_status = [
-            cumulus_parameterization_config.ENABLE_SHALLOW,
-            cumulus_parameterization_config.ENABLE_MID,
-            cumulus_parameterization_config.ENABLE_DEEP,
-        ]
+        # self._plume_status = [0, 1, 1]
 
         # make saturation table data visible at runtime
         # NOTE: this is an orchestration workaround. Direct call to
@@ -1043,7 +1051,10 @@ class GF2020Finalize(NDSLRuntime):
         self._update_convection_tracer = stencil_factory.from_dims_halo(
             func=update_convection_tracer,
             compute_dims=[I_DIM, J_DIM, K_DIM],
-            externals={"CONVECTION_TRACER": config.CONVECTION_TRACER, "DT_MOIST": config.DT_MOIST},
+            externals={
+                "CONVECTION_TRACER": config.CONVECTION_TRACER,
+                "DT_MOIST": config.DT_MOIST,
+            },
         )
 
         self._update_outputs = stencil_factory.from_dims_halo(
@@ -1165,7 +1176,7 @@ class GF2020Finalize(NDSLRuntime):
             do_this_column=locals.do_this_column,
         )
 
-        for tracer in range(constants.NUMBER_OF_TRACERS):
+        for tracer in range(23):
             self._feedback_tracers(
                 tracer=Int(tracer),
                 fix_out_vapor=locals.fix_out_vapor,
@@ -1200,19 +1211,21 @@ class GF2020Finalize(NDSLRuntime):
             convection_tracers=convection_tracers.tracers,
         )
 
-        for plume in range(cumulus_parameterization_constants.NUMBER_OF_PLUMES):
+        # This is a workaround for our current config. @Charles: Can we do this for our runs for now?
+        for plume in range(3):
             # Only call the function if the current plume is enabled self._plume_status is fixed to
             # [shallow, mid, deep] order. This conditional ensures the correct is checked in plume_status
             # and the correct plume is written in the stencil even if the overarching data order changes
-            if plume == cumulus_parameterization_constants.SHALLOW:
-                index = 0
-            elif plume == cumulus_parameterization_constants.MID:
-                index = 1
-            elif plume == cumulus_parameterization_constants.DEEP:
-                index = 2
-            if self._plume_status[index] == 1:
+
+            # This is a workaround for our current config. @Charles: Can we do this for our runs for now?
+            if plume == 0:
+                status = False
+            else:
+                status = True
+
+            if status:
                 self._feed_3d_model_from_plumes(
-                    plume=Int(index),
+                    plume=Int(plume),
                     do_this_column=locals.do_this_column,
                     dz=locals.derived_state.dz,
                     air_density=locals.derived_state.air_density,
