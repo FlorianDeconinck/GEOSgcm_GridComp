@@ -1,16 +1,19 @@
 from ndsl.dsl.typing import Float, Int
 
 from pyMoist.convection.GF_2020.cumulus_parameterization.config import GF2020CumulusParameterizationConfig
-from pyMoist.convection.GF_2020.cumulus_parameterization.constants import PRESSURE_GRADIENT_CONSTANT
+from pyMoist.convection.GF_2020.cumulus_parameterization.constants import PRESSURE_GRADIENT_CONSTANT, Plumes
 from pyMoist.convection.GF_2020.cumulus_parameterization.plume_dependent_constants import GF2020PlumeDependentConstants
+
+
+# def set_shallow_constants:
 
 
 def set_constants(
     cumulus_parameterization_config: GF2020CumulusParameterizationConfig,
     plume_dependent_constants: GF2020PlumeDependentConstants,
-    plume: str,
+    plume: Plumes,
 ):
-    if plume == "shallow":
+    if plume == Plumes.SHALLOW:
         # set a number of plume dependent constants
         plume_dependent_constants.PLUME_INDEX = Int(0)
         plume_dependent_constants.DOWNDRAFT_MAX_HEIGHT_LAND = cumulus_parameterization_config.DOWNDRAFT_MAX_HEIGHT_LAND_SHALLOW

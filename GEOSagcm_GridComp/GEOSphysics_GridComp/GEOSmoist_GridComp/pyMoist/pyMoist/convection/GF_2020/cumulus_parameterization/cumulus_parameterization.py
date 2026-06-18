@@ -5,7 +5,7 @@ from pyMoist.convection.GF_2020.config import GF2020Config
 from pyMoist.convection.GF_2020.cumulus_parameterization.air_density import hydrostatic_air_density
 from pyMoist.convection.GF_2020.cumulus_parameterization.buoyancy import get_buoyancy
 from pyMoist.convection.GF_2020.cumulus_parameterization.config import GF2020CumulusParameterizationConfig
-from pyMoist.convection.GF_2020.cumulus_parameterization.constants import FIRST_GUESS_W, MAXENS1, MAXENS2, MAXENS3
+from pyMoist.convection.GF_2020.cumulus_parameterization.constants import FIRST_GUESS_W, MAXENS1, MAXENS2, MAXENS3, Plumes
 from pyMoist.convection.GF_2020.cumulus_parameterization.convective_tracers import AtmosphericComposition, ColdPoolParameterization
 from pyMoist.convection.GF_2020.cumulus_parameterization.diurnal_cycle import DiurnalCycle
 from pyMoist.convection.GF_2020.cumulus_parameterization.downdraft import (
@@ -545,12 +545,12 @@ class GF2020CumulusParameterization(NDSLRuntime):
                 will be updated within convection. These may come from a variety of sources, and need to be
                 collected into the expected ConvectionTracers data type before being passed down.
         """
-        if self.cumulus_parameterization_config.SHALLOW_MID_DEEP:
-            plume_types = ["shallow", "mid", "deep"]
-        else:
-            plume_types = ["shallow", "deep", "mid"]
+        # if self.cumulus_parameterization_config.SHALLOW_MID_DEEP:
+        #     plume_types = ["shallow", "mid", "deep"]
+        # else:
+        #     plume_types = ["shallow", "deep", "mid"]
 
-        for plume in plume_types:
+        for plume in [Plumes.SHALLOW, Plumes.MID, Plumes.DEEP]:
             # setup constants for the current plume, reset necessary fields, prefill necessary fields
             # NOTE test GF2020_CumulusParameterization_Setup_{plume}:
             # NOTE      deep ✅

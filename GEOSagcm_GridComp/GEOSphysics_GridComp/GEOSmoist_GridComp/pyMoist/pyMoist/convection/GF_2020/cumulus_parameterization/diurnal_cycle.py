@@ -1,3 +1,4 @@
+import dace
 from ndsl import Local, NDSLRuntime, Quantity, QuantityFactory, StencilFactory
 from ndsl.constants import I_DIM, J_DIM, K_DIM
 from ndsl.dsl.gt4py import FORWARD, K, computation, interval, sqrt
@@ -234,9 +235,7 @@ class DiurnalCycle(NDSLRuntime):
             plume=plume_dependent_constants.PLUME_INDEX,
         )
 
-        if (self.cumulus_parameterization_config.DIURNAL_CYCLE == 1 or self.cumulus_parameterization_config.DIURNAL_CYCLE == 6) or (
-            self.cumulus_parameterization_config.DIURNAL_CYCLE == 0 and plume_dependent_constants.PLUME_INDEX == 1  # mid plume
-        ):
+        if True:
             # calculate pcape from BL forcing only
             self._cloud_workfunction_1_pbl(
                 error_code=error_code,
@@ -252,12 +251,12 @@ class DiurnalCycle(NDSLRuntime):
                 plume=plume_dependent_constants.PLUME_INDEX,
             )
 
-            if self.cumulus_parameterization_config.DIURNAL_CYCLE == 6:
-                raise NotImplementedError(
-                    "[NDSL] GF2020-->CumulusParameterization-->DiurnalCycle called with an unimplemented"
-                    "path. This should have been caught at initialization, but somehow you made it here."
-                    "Choose another option for DIURNAL_CYCLE or implement to continue."
-                )
+            # if self.cumulus_parameterization_config.DIURNAL_CYCLE == 6:
+            #     raise NotImplementedError(
+            #         "[NDSL] GF2020-->CumulusParameterization-->DiurnalCycle called with an unimplemented"
+            #         "path. This should have been caught at initialization, but somehow you made it here."
+            #         "Choose another option for DIURNAL_CYCLE or implement to continue."
+            #     )
 
             self._scale_cloud_workfunction_1_pbl(
                 error_code=error_code,
@@ -267,16 +266,19 @@ class DiurnalCycle(NDSLRuntime):
                 plume=plume_dependent_constants.PLUME_INDEX,
             )
 
-        elif self.cumulus_parameterization_config.DIURNAL_CYCLE == 4:
-            raise NotImplementedError(
-                "[NDSL] GF2020-->CumulusParameterization-->DiurnalCycle called with an unimplemented path."
-                "This should have been caught at initialization, but somehow you made it here."
-                "Choose another option or for DIURNAL_CYCLE implement to continue."
-            )
+        # elif self.cumulus_parameterization_config.DIURNAL_CYCLE == 4:
+        #     raise NotImplementedError(
+        #         "[NDSL] GF2020-->CumulusParameterization-->DiurnalCycle called with an unimplemented path."
+        #         "This should have been caught at initialization, but somehow you made it here."
+        #         "Choose another option or for DIURNAL_CYCLE implement to continue."
+        #     )
 
-        if self.cumulus_parameterization_config.DIURNAL_CYCLE == 5 or self.cumulus_parameterization_config.DIURNAL_CYCLE == 2:
-            raise NotImplementedError(
-                "[NDSL] GF2020-->CumulusParameterization-->DiurnalCycle called with an unimplemented path."
-                "This should have been caught at initialization, but somehow you made it here."
-                "Choose another option or for DIURNAL_CYCLE implement to continue."
-            )
+        # if (
+        #     self.cumulus_parameterization_config.DIURNAL_CYCLE == 5
+        #     or self.cumulus_parameterization_config.DIURNAL_CYCLE == 2
+        # ):
+        #     raise NotImplementedError(
+        #         "[NDSL] GF2020-->CumulusParameterization-->DiurnalCycle called with an unimplemented path."
+        #         "This should have been caught at initialization, but somehow you made it here."
+        #         "Choose another option or for DIURNAL_CYCLE implement to continue."
+        #     )

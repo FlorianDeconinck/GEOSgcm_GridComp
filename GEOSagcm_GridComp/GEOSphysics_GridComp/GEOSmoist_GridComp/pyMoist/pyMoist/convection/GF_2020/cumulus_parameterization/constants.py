@@ -1,8 +1,18 @@
+from enum import Enum, IntEnum
+
 from ndsl.dsl.typing import Float, Int
 
 
 # used to define data_dimension size for quantity factories
 NUMBER_OF_PLUMES = Int(3)
+
+
+class Plumes(Enum):
+    __order__ = "SHALLOW MID DEEP"
+    SHALLOW = 0
+    MID = 1
+    DEEP = 2
+
 
 # physical constants used ONLY for GF_2020, else there may be unintended conflicts with global constants
 RGAS = Float(287.0)  # J K-1 kg-1
