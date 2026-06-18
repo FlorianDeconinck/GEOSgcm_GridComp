@@ -108,22 +108,23 @@ class GF2020(NDSLRuntime):
         # this will be triggered in setup if surface temperature is very near zero Kelvin
 
         # call the there parts of the scheme
-        scm_stop = self._setup(
+        # TODO: Charles this is a workaround
+        self._setup(
             state=state,
             locals=self.locals,
             cumulus_parameterization_state=self.cumulus_parameterization_state,
             convection_tracers=convection_tracers,
         )
 
-        if not scm_stop:
-            self._cumulus_parameterization_core(
-                state=self.cumulus_parameterization_state,
-                convection_tracers=convection_tracers,
-            )
+        # TODO: Charles this is a workaround
+        self._cumulus_parameterization_core(
+            state=self.cumulus_parameterization_state,
+            convection_tracers=convection_tracers,
+        )
 
-            self._finalize(
-                state=state,
-                locals=self.locals,
-                cumulus_parameterization_state=self.cumulus_parameterization_state,
-                convection_tracers=convection_tracers,
-            )
+        self._finalize(
+            state=state,
+            locals=self.locals,
+            cumulus_parameterization_state=self.cumulus_parameterization_state,
+            convection_tracers=convection_tracers,
+        )

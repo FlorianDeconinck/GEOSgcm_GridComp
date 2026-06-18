@@ -663,12 +663,12 @@ class GF2020CumulusParameterization(NDSLRuntime):
                     plume=self.plume_dependent_constants.PLUME_INDEX,
                 )
 
-                # outputs a model sounding for the stand-alone code (part 1)
-                if self.cumulus_parameterization_config.CLOUD_LEVEL_GRID != 1:
-                    ndsl_log.warning(
-                        " GF2020 cumulus parameterization initialized with unimplemented OUTPUT_SOUNDING option. "
-                        "Output soundings are not currently available. Contact support if this tool is needed."
-                    )
+                # # outputs a model sounding for the stand-alone code (part 1)
+                # if self.cumulus_parameterization_config.CLOUD_LEVEL_GRID != 1:
+                #     ndsl_log.warning(
+                #         " GF2020 cumulus parameterization initialized with unimplemented OUTPUT_SOUNDING option. "
+                #         "Output soundings are not currently available. Contact support if this tool is needed."
+                #     )
 
                 # environmental values on cloud levels
                 # NOTE test GF2020_CumulusParameterization_EnvironmentCloudLevels_1_{plume}:

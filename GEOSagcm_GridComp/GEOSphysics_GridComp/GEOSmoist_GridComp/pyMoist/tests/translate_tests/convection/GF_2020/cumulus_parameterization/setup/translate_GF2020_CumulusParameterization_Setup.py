@@ -276,7 +276,7 @@ class TestCore:
             entrainment_rate=state.output.entrainment_rate,
             detrainment_function_updraft=locals.detrainment_function_updraft,
             arbitrary_numerical_parameter=locals.arbitrary_numerical_parameter,
-            plume_dependent_constants=plume_dependent_constants,
+            # plume_dependent_constants=plume_dependent_constants,
             plume=plume,
         )
 
