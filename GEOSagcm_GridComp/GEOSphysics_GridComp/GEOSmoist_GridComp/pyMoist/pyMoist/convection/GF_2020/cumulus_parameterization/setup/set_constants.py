@@ -67,7 +67,7 @@ def set_constants(
         # closure choice
         plume_dependent_constants.CLOSURE_CHOICE = cumulus_parameterization_config.CLOSURE_CHOICE_SHALLOW
 
-    elif plume == "mid":
+    elif plume == Plumes.MID:
         # set a number of plume dependent constants
         plume_dependent_constants.PLUME_INDEX = Int(1)
         plume_dependent_constants.DOWNDRAFT_MAX_HEIGHT_LAND = cumulus_parameterization_config.DOWNDRAFT_MAX_HEIGHT_LAND_MID
@@ -121,7 +121,7 @@ def set_constants(
         # closure choice
         plume_dependent_constants.CLOSURE_CHOICE = cumulus_parameterization_config.CLOSURE_CHOICE_MID
 
-    elif plume == "deep":
+    elif plume == Plumes.DEEP:
         # set a number of plume dependent constants
         plume_dependent_constants.PLUME_INDEX = Int(2)
         plume_dependent_constants.DOWNDRAFT_MAX_HEIGHT_LAND = cumulus_parameterization_config.DOWNDRAFT_MAX_HEIGHT_LAND_DEEP

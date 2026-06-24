@@ -30,7 +30,7 @@ def smooth_tendencies(
         del_v_cloud_ensemble (FloatField)
         plume (Int)
     """
-    from __externals__ import USE_SMOOTH_TENDENCIES
+    from __externals__ import USE_SMOOTH_TENDENCIES  # type: ignore
 
     with computation(FORWARD), interval(0, 1):
         if error_code[0, 0][plume] == 0 and USE_SMOOTH_TENDENCIES >= 1:
