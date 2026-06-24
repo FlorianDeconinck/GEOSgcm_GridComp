@@ -14,6 +14,11 @@ from pyMoist.convection.GF_2020.cumulus_parameterization.constants import (
     MAXENS3,
     PRESSURE_GRADIENT_CONSTANT,
 )
+from pyMoist.convection.GF_2020.cumulus_parameterization.config import (
+    DeepSpecificConstants,
+    MidSpecificConstants,
+    ShallowSpecificConstants,
+)
 from pyMoist.convection.GF_2020.cumulus_parameterization.field_types import (
     FloatField_Plume,
     FloatFieldIJ_Ensemble,
@@ -411,6 +416,12 @@ class Setup(NDSLRuntime):
         self.config = config
         self.cu_param_config = cumulus_parameterization_config
 
+        # unfortunately we need to unroll this config here
+        self.shallow = ShallowSpecificConstants(cumulus_parameterization_config)
+        self.mid = MidSpecificConstants(cumulus_parameterization_config)
+        self.deep = DeepSpecificConstants(cumulus_parameterization_config)
+        # self.all_constants = [self.shallow, self.mid, self.deep]
+
         # construct stencils and functions
         self._set_plume_dependent_fields = stencil_factory.from_dims_halo(
             func=set_plume_dependent_fields,
@@ -451,93 +462,6 @@ class Setup(NDSLRuntime):
         self._calculate_arbitrary_numerical_parameter = stencil_factory.from_dims_halo(
             func=calculate_arbitrary_numerical_parameter,
             compute_dims=[I_DIM, J_DIM, K_DIM],
-        )
-
-        self.SAHLLOW_PLUME_INDEX = Int(0)
-        self.SAHLLOW_DOWNDRAFT_MAX_HEIGHT_LAND = (
-            cumulus_parameterization_config.DOWNDRAFT_MAX_HEIGHT_LAND_SHALLOW
-        )
-        self.SAHLLOW_DOWNDRAFT_MAX_HEIGHT_OCEAN = (
-            cumulus_parameterization_config.DOWNDRAFT_MAX_HEIGHT_OCEAN_SHALLOW
-        )
-        self.SAHLLOW_UPDRAFT_MAX_HEIGHT_LAND = (
-            cumulus_parameterization_config.UPDRAFT_MAX_HEIGHT_LAND_SHALLOW
-        )
-        self.SAHLLOW_UPDRAFT_MAX_HEIGHT_OCEAN = (
-            cumulus_parameterization_config.UPDRAFT_MAX_HEIGHT_OCEAN_SHALLOW
-        )
-        self.SAHLLOW_MINIMUM_EVAP_FRACTION_LAND = (
-            cumulus_parameterization_config.MINIMUM_EVAP_FRACTION_LAND_SHALLOW
-        )
-        self.SAHLLOW_MINIMUM_EVAP_FRACTION_OCEAN = (
-            cumulus_parameterization_config.MINIMUM_EVAP_FRACTION_OCEAN_SHALLOW
-        )
-        self.SAHLLOW_MAXIMUM_EVAP_FRACTION_LAND = (
-            cumulus_parameterization_config.MAXIMUM_EVAP_FRACTION_LAND_SHALLOW
-        )
-        self.SAHLLOW_MAXIMUM_EVAP_FRACTION_OCEAN = (
-            cumulus_parameterization_config.MAXIMUM_EVAP_FRACTION_OCEAN_SHALLOW
-        )
-        self.SAHLLOW_CLOUD_BASE_MASS_FLUX_FACTOR = (
-            cumulus_parameterization_config.CLOUD_BASE_MASS_FLUX_FACTOR_SHALLOW
-        )
-        self.SAHLLOW_USE_EXCESS = cumulus_parameterization_config.USE_EXCESS_SHALLOW
-        self.SAHLLOW_ENTRAINMENT_RATE = (
-            cumulus_parameterization_config.ENTRAINMENT_RATE_SHALLOW
-        )
-        self.SAHLLOW_ENABLE_PLUME = cumulus_parameterization_config.ENABLE_SHALLOW
-        self.SAHLLOW_AVERAGE_LAYER_DEPTH = (
-            cumulus_parameterization_config.AVERAGE_LAYER_DEPTH_SHALLOW
-        )
-
-        # maximum depth (mb) of capping inversion (larger cap = no convection)
-        if (
-            cumulus_parameterization_config.ZERO_DIFF == 1
-            or cumulus_parameterization_config.MOIST_TRIGGER == 0
-        ):
-            self.SAHLLOW_CAP_MAX_INC = Float(25.0)
-        else:
-            self.SAHLLOW_CAP_MAX_INC = Float(10.0)
-
-        # lambda_U parameter for momentum transport
-        if PRESSURE_GRADIENT_CONSTANT != 0.0:
-            self.SAHLLOW_LAMBDA_DEEP = Float(0.0)
-
-            self.SAHLLOW_LAMBDA_DOWN = Float(0.0)
-        else:
-            self.SAHLLOW_LAMBDA_DEEP = cumulus_parameterization_config.LAMBDA_DEEP
-
-            self.SAHLLOW_LAMBDA_DOWN = (
-                cumulus_parameterization_config.LAMBDA_SHALLOW_DOWN
-            )
-
-        # minimum depth (m) clouds must have
-        self.SAHLLOW_MINIMUM_DEPTH = Float(500.0)
-
-        # max height(m) above ground where updraft air can originate
-        self.SAHLLOW_MAX_UPDRAFT_ORIGIN_HEIGHT = Float(2000.0)
-
-        # height(m) above which no downdrafts are allowed to originate
-        self.SAHLLOW_MAX_DOWNDRAFT_ORIGIN_HEIGHt = Float(3000.0)
-
-        # depth(m) over which downdraft detrains all its mass
-        self.SAHLLOW_DETRAINMENT_CRITICAL_DEPTH = (
-            Float(0.5) * self.SAHLLOW_MINIMUM_DEPTH
-        )
-
-        self.SAHLLOW_C0 = cumulus_parameterization_config.C0_SHAL
-
-        # temperature for diurnal cycle section
-        self.SAHLLOW_T_STAR = Float(40.0)
-
-        # timescale of cape removal
-        self.SAHLLOW_TAU_CAPE_REMOVAL = (
-            -999
-        )  # not used - ideally should not exist for this plume
-
-        # closure choice
-        self.SAHLLOW_CLOSURE_CHOICE = (
-            cumulus_parameterization_config.CLOSURE_CHOICE_SHALLOW
         )
 
     def __call__(
@@ -606,14 +530,48 @@ class Setup(NDSLRuntime):
         entrainment_rate: Quantity,
         detrainment_function_updraft: Quantity,
         arbitrary_numerical_parameter: Quantity,
-        # plume_dependent_constants: GF2020PlumeDependentConstants,
-        plume: str,
+        plume: int,
     ):
-        # plume_dependent_constants = set_constants(
-        #     self.cu_param_config, plume_dependent_constants, plume
-        # )
+        if plume == 0:
+            constant_enable_plume = self.shallow.ENABLE_PLUME
+            constant_use_excess = self.shallow.USE_EXCESS
+            constant_plume_idx = self.shallow.PLUME_INDEX
+            constant_cap_max_inc = self.shallow.CAP_MAX_INC
+            constant_entrainment_rate = self.shallow.ENTRAINMENT_RATE
+            constant_minimum_evap_fraction_ocean = (
+                self.shallow.MINIMUM_EVAP_FRACTION_OCEAN
+            )
+            constant_maximum_evap_fraction_ocean = (
+                self.shallow.MAXIMUM_EVAP_FRACTION_OCEAN
+            )
+            constant_minimum_evap_fraction_land = (
+                self.shallow.MINIMUM_EVAP_FRACTION_LAND
+            )
+            constant_maximum_evap_fraction_land = (
+                self.shallow.MAXIMUM_EVAP_FRACTION_LAND
+            )
+        elif plume == 1:
+            constant_enable_plume = self.mid.ENABLE_PLUME
+            constant_use_excess = self.mid.USE_EXCESS
+            constant_plume_idx = self.mid.PLUME_INDEX
+            constant_cap_max_inc = self.mid.CAP_MAX_INC
+            constant_entrainment_rate = self.mid.ENTRAINMENT_RATE
+            constant_minimum_evap_fraction_ocean = self.mid.MINIMUM_EVAP_FRACTION_OCEAN
+            constant_maximum_evap_fraction_ocean = self.mid.MAXIMUM_EVAP_FRACTION_OCEAN
+            constant_minimum_evap_fraction_land = self.mid.MINIMUM_EVAP_FRACTION_LAND
+            constant_maximum_evap_fraction_land = self.mid.MAXIMUM_EVAP_FRACTION_LAND
+        else:
+            constant_enable_plume = self.deep.ENABLE_PLUME
+            constant_use_excess = self.deep.USE_EXCESS
+            constant_plume_idx = self.deep.PLUME_INDEX
+            constant_cap_max_inc = self.deep.CAP_MAX_INC
+            constant_entrainment_rate = self.deep.ENTRAINMENT_RATE
+            constant_minimum_evap_fraction_ocean = self.deep.MINIMUM_EVAP_FRACTION_OCEAN
+            constant_maximum_evap_fraction_ocean = self.deep.MAXIMUM_EVAP_FRACTION_OCEAN
+            constant_minimum_evap_fraction_land = self.deep.MINIMUM_EVAP_FRACTION_LAND
+            constant_maximum_evap_fraction_land = self.deep.MAXIMUM_EVAP_FRACTION_LAND
 
-        if self.SAHLLOW_ENABLE_PLUME == 1:
+        if constant_enable_plume == 1:
             #     # compute/prefill the last few fields needed for the rest of the scheme
             self._set_plume_dependent_fields(
                 t_excess=t_excess,
@@ -621,7 +579,7 @@ class Setup(NDSLRuntime):
                 vapor_excess=vapor_excess,
                 vapor_excess_local=vapor_excess_local,
                 ocean_fraction=ocean_fraction,
-                use_excess=self.SAHLLOW_USE_EXCESS,
+                use_excess=constant_use_excess,
                 t_old=t_old,
                 vapor_old=vapor_old,
                 grid_scale_forcing_t=grid_scale_forcing_t,
@@ -636,7 +594,7 @@ class Setup(NDSLRuntime):
             )
 
             self._prefill_internal_fields(
-                plume=self.SAHLLOW_PLUME_INDEX,
+                plume=constant_plume_idx,
                 maximum_updraft_origin_level=maximum_updraft_origin_level,
                 kstabm=kstabm,
                 ocean_fraction=ocean_fraction,
@@ -644,7 +602,7 @@ class Setup(NDSLRuntime):
                 cap_max=cap_max,
                 error_code_2=error_code_2,
                 error_code_3=error_code_3,
-                CAP_MAX_INC=self.SAHLLOW_CAP_MAX_INC,
+                CAP_MAX_INC=constant_cap_max_inc,
                 cap_max_increment=cap_max_increment,
                 geopotential_height=geopotential_height,
                 geopotential_height_local=geopotential_height_local,
@@ -681,7 +639,7 @@ class Setup(NDSLRuntime):
 
             # scale dependence factor (sig), version new
             self._compute_scale_dependence_factor(
-                plume=self.SAHLLOW_PLUME_INDEX,
+                plume=constant_plume_idx,
                 scale_dependence_factor=scale_dependence_factor,
                 seed_convection=seed_convection,
                 error_code=error_code,
@@ -690,15 +648,15 @@ class Setup(NDSLRuntime):
 
             #     # create a real random number in the interval [-use_random_num, +use_random_num]
             self._get_random_number(
-                plume=self.SAHLLOW_PLUME_INDEX,
+                plume=constant_plume_idx,
                 random_number=random_number,
             )
 
             # define entrainment/detrainment profiles for updrafts
             self._initial_entrainment_detrainment(
-                plume=self.SAHLLOW_PLUME_INDEX,
+                plume=constant_plume_idx,
                 lateral_entrainment_rate=lateral_entrainment_rate,
-                current_plume_rate=self.SAHLLOW_ENTRAINMENT_RATE,
+                current_plume_rate=constant_entrainment_rate,
                 entrainment_rate=entrainment_rate,
                 detrainment_function_updraft=detrainment_function_updraft,
             )
@@ -709,10 +667,10 @@ class Setup(NDSLRuntime):
                 ocean_fraction=ocean_fraction,
                 epsilon_min=epsilon_min,
                 epsilon_max=epsilon_max,
-                MINIMUM_EVAP_FRACTION_OCEAN=self.SAHLLOW_MINIMUM_EVAP_FRACTION_OCEAN,
-                MAXIMUM_EVAP_FRACTION_OCEAN=self.SAHLLOW_MAXIMUM_EVAP_FRACTION_OCEAN,
-                MINIMUM_EVAP_FRACTION_LAND=self.SAHLLOW_MINIMUM_EVAP_FRACTION_LAND,
-                MAXIMUM_EVAP_FRACTION_LAND=self.SAHLLOW_MAXIMUM_EVAP_FRACTION_LAND,
+                MINIMUM_EVAP_FRACTION_OCEAN=constant_minimum_evap_fraction_ocean,
+                MAXIMUM_EVAP_FRACTION_OCEAN=constant_maximum_evap_fraction_ocean,
+                MINIMUM_EVAP_FRACTION_LAND=constant_minimum_evap_fraction_land,
+                MAXIMUM_EVAP_FRACTION_LAND=constant_maximum_evap_fraction_land,
             )
 
             # calculate arbitrary numerical parameter
