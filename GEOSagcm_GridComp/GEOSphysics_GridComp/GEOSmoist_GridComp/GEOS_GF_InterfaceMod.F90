@@ -410,6 +410,11 @@ subroutine GF_Run (GC, IMPORT, EXPORT, CLOCK, RC)
     ! DSL fields
     real, pointer, dimension(:,:) :: DSL__GF2020_LONS, DSL__GF2020_LATS
 
+    ! Timing vars - to delete
+    real :: start, finish
+    type(ESMF_VM) :: vm
+    integer :: comm, rank, mpierr
+
     call ESMF_ClockGetAlarm(clock, 'GF_RunAlarm', alarm, RC=STATUS); VERIFY_(STATUS)
     alarm_is_ringing = ESMF_AlarmIsRinging(alarm, RC=STATUS); VERIFY_(STATUS)
 
@@ -440,6 +445,12 @@ subroutine GF_Run (GC, IMPORT, EXPORT, CLOCK, RC)
          INTERNAL_ESMF_STATE=INTERNAL, &
          RC=STATUS )
     VERIFY_(STATUS)
+
+    ! Local timing - delete
+    call ESMF_VMGetCurrent(vm, rc=status) ! pchakrab: replace with ESMF_GridCompGet(gc, VM=VM, _RC)
+    call ESMF_VMGet(vm, mpiCommunicator=comm)
+    call MPI_Comm_rank(comm, rank, mpierr)
+    call cpu_time(start)
 
     if (USE_PYMOIST_GF2020) then
       call MAPL_GetPointer(INTERNAL, DSL__GF2020_LONS, 'DSL__GF2020_LONS', RC=STATUS); VERIFY_(STATUS)
@@ -741,7 +752,11 @@ subroutine GF_Run (GC, IMPORT, EXPORT, CLOCK, RC)
       if(associated(PTR3D)) PTR3D = CNV_PRC3 / GF_DT
 
     endif ! USE_PYMOIST_GF2020
-   
+
+    ! End profiler marker for Microphysics
+    call cpu_time(finish)
+    if (rank == 0) print *, '0: gf: time taken = ', finish - start, 's'    
+
     call MAPL_TimerOff (MAPL,"--GF")
 
     endif
