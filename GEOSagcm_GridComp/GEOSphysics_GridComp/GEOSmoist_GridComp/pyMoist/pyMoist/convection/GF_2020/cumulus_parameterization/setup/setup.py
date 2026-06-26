@@ -505,7 +505,7 @@ class Setup(NDSLRuntime):
         if plume == 0:
             constant_enable_plume = self.shallow.ENABLE_PLUME
             constant_use_excess = self.shallow.USE_EXCESS
-            constant_plume_idx = self.shallow.PLUME_INDEX
+            constant_plume_idx = Int(self.shallow.PLUME_INDEX)
             constant_cap_max_inc = self.shallow.CAP_MAX_INC
             constant_entrainment_rate = self.shallow.ENTRAINMENT_RATE
             constant_minimum_evap_fraction_ocean = self.shallow.MINIMUM_EVAP_FRACTION_OCEAN
@@ -515,7 +515,7 @@ class Setup(NDSLRuntime):
         elif plume == 1:
             constant_enable_plume = self.mid.ENABLE_PLUME
             constant_use_excess = self.mid.USE_EXCESS
-            constant_plume_idx = self.mid.PLUME_INDEX
+            constant_plume_idx = Int(self.mid.PLUME_INDEX)
             constant_cap_max_inc = self.mid.CAP_MAX_INC
             constant_entrainment_rate = self.mid.ENTRAINMENT_RATE
             constant_minimum_evap_fraction_ocean = self.mid.MINIMUM_EVAP_FRACTION_OCEAN
@@ -525,7 +525,7 @@ class Setup(NDSLRuntime):
         else:
             constant_enable_plume = self.deep.ENABLE_PLUME
             constant_use_excess = self.deep.USE_EXCESS
-            constant_plume_idx = self.deep.PLUME_INDEX
+            constant_plume_idx = Int(self.deep.PLUME_INDEX)
             constant_cap_max_inc = self.deep.CAP_MAX_INC
             constant_entrainment_rate = self.deep.ENTRAINMENT_RATE
             constant_minimum_evap_fraction_ocean = self.deep.MINIMUM_EVAP_FRACTION_OCEAN

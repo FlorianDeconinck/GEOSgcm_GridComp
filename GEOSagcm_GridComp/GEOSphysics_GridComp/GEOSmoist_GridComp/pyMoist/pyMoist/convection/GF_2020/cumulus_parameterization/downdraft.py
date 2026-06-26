@@ -7,7 +7,12 @@ from ndsl.stencils.column_operations import column_max, column_max_ddim, column_
 import pyMoist.constants as constants
 import pyMoist.convection.GF_2020.cumulus_parameterization.constants as cumulus_parameterization_constants
 from pyMoist.convection.GF_2020.config import GF2020Config
-from pyMoist.convection.GF_2020.cumulus_parameterization.config import GF2020CumulusParameterizationConfig
+from pyMoist.convection.GF_2020.cumulus_parameterization.config import (
+    DeepSpecificConstants,
+    GF2020CumulusParameterizationConfig,
+    MidSpecificConstants,
+    ShallowSpecificConstants,
+)
 from pyMoist.convection.GF_2020.cumulus_parameterization.field_types import FloatField_Plume, FloatFieldIJ_ensemble_2, FloatFieldIJ_Plume, IntFieldIJ_Plume
 from pyMoist.convection.GF_2020.cumulus_parameterization.plume_dependent_constants import GF2020PlumeDependentConstants
 from pyMoist.convection.GF_2020.cumulus_parameterization.shared_stencils import generic_find_level
@@ -341,7 +346,6 @@ def downdraft_lateral_massflux(
 
     with computation(BACKWARD), interval(0, -1):
         if plume != 0 and error_code[0, 0][plume] == 0 and K >= max_loc and K <= downdraft_origin_level[0, 0][plume]:
-
             # from downdraft_origin_level to maximum value of
             # normalized_massflux_downdraft, change entrainment
             dzo = geopotential_height_cloud_levels_forced[0, 0, 1] - geopotential_height_cloud_levels_forced
@@ -614,7 +618,8 @@ def downdraft_moisture(
     with computation(FORWARD), interval(0, -1):
         if error_code[0, 0][plume] == 0 and plume != 0 and K == downdraft_origin_level[0, 0][plume]:
             evaporate_in_downdraft_forced[0, 0, 0][plume] = normalized_massflux_downdraft_forced[0, 0, 0][plume] * min(
-                0.0, cloud_total_water_after_entrainment_downdraft_forced - downdraft_saturation_vapor_forced
+                0.0,
+                cloud_total_water_after_entrainment_downdraft_forced - downdraft_saturation_vapor_forced,
             )
             cloud_total_water_after_entrainment_downdraft_forced = downdraft_saturation_vapor_forced
             total_normalized_integrated_evaporate_forced = total_normalized_integrated_evaporate_forced + evaporate_in_downdraft_forced[0, 0, 0][plume]
@@ -937,6 +942,10 @@ class DowndraftOriginLevel(NDSLRuntime):
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
 
+        self.shallow = ShallowSpecificConstants(cumulus_parameterization_config)
+        self.mid = MidSpecificConstants(cumulus_parameterization_config)
+        self.deep = DeepSpecificConstants(cumulus_parameterization_config)
+
     def __call__(
         self,
         error_code: Quantity,
@@ -949,16 +958,25 @@ class DowndraftOriginLevel(NDSLRuntime):
         updraft_lfc_level: Quantity,
         detrainment_start_level: Quantity,
         melting_layer: Quantity,
-        plume_dependent_constants: GF2020PlumeDependentConstants,
+        plume: int,
     ):
+        if plume == 0:
+            constants_MAX_DOWNDRAFT_ORIGIN_HEIGHt = self.shallow.MAX_DOWNDRAFT_ORIGIN_HEIGHt
+            constants_MINIMUM_DEPTH = self.shallow.MINIMUM_DEPTH
+        elif plume == 1:
+            constants_MAX_DOWNDRAFT_ORIGIN_HEIGHt = self.mid.MAX_DOWNDRAFT_ORIGIN_HEIGHt
+            constants_MINIMUM_DEPTH = self.mid.MINIMUM_DEPTH
+        else:
+            constants_MAX_DOWNDRAFT_ORIGIN_HEIGHt = self.deep.MAX_DOWNDRAFT_ORIGIN_HEIGHt
+            constants_MINIMUM_DEPTH = self.deep.MINIMUM_DEPTH
         self._get_critical_level(
             error_code=error_code,
             critical_level=self._critical_level,
             cloud_top_level=cloud_top_level,
             geopotential_height_cloud_levels_forced=geopotential_height_cloud_levels_forced,
             topography_height_no_negative=topography_height_no_negative,
-            MAX_DOWNDRAFT_ORIGIN_HEIGHt=plume_dependent_constants.MAX_DOWNDRAFT_ORIGIN_HEIGHt,
-            plume=plume_dependent_constants.PLUME_INDEX,
+            MAX_DOWNDRAFT_ORIGIN_HEIGHt=constants_MAX_DOWNDRAFT_ORIGIN_HEIGHt,
+            plume=plume,
         )
 
         self._unknown_find_level(
@@ -967,7 +985,7 @@ class DowndraftOriginLevel(NDSLRuntime):
             end_index=self._critical_level,
             out_index=downdraft_origin_level,
             error_code=error_code,
-            plume=plume_dependent_constants.PLUME_INDEX,
+            plume=plume,
         )
 
         self._get_downdraft_origin_level(
@@ -979,8 +997,8 @@ class DowndraftOriginLevel(NDSLRuntime):
             environment_saturation_moist_static_energy_cloud_levels_forced=environment_saturation_moist_static_energy_cloud_levels_forced,
             geopotential_height_cloud_levels_forced=geopotential_height_cloud_levels_forced,
             melting_layer=melting_layer,
-            MINIMUM_DEPTH=plume_dependent_constants.MINIMUM_DEPTH,
-            plume=plume_dependent_constants.PLUME_INDEX,
+            MINIMUM_DEPTH=constants_MINIMUM_DEPTH,
+            plume=plume,
         )
 
 
@@ -1047,7 +1065,7 @@ class DowndraftWindShear(NDSLRuntime):
         epsilon_max: Quantity,
         epsilon_computed: Quantity,
         epsilon_forced: Quantity,
-        plume_dependent_constants: GF2020PlumeDependentConstants,
+        plume: int,
     ):
         self._downdraft_windshear(
             error_code=error_code,
@@ -1066,7 +1084,7 @@ class DowndraftWindShear(NDSLRuntime):
             epsilon_min=epsilon_min,
             epsilon_max=epsilon_max,
             epsilon_computed=epsilon_computed,
-            plume=plume_dependent_constants.PLUME_INDEX,
+            plume=plume,
         )
 
         self._update_epsilon_forced(
@@ -1075,5 +1093,5 @@ class DowndraftWindShear(NDSLRuntime):
             epsilon_computed=epsilon_computed,
             epsilon=epsilon,
             epsilon_forced=epsilon_forced,
-            plume=plume_dependent_constants.PLUME_INDEX,
+            plume=plume,
         )

@@ -6,7 +6,12 @@ from ndsl.dsl.typing import FloatField, FloatFieldIJ, Int, IntFieldIJ
 import pyMoist.constants as constants
 import pyMoist.convection.GF_2020.cumulus_parameterization.constants as cumulus_parameterization_constants
 from pyMoist.convection.GF_2020.config import GF2020Config
-from pyMoist.convection.GF_2020.cumulus_parameterization.config import GF2020CumulusParameterizationConfig
+from pyMoist.convection.GF_2020.cumulus_parameterization.config import (
+    DeepSpecificConstants,
+    GF2020CumulusParameterizationConfig,
+    MidSpecificConstants,
+    ShallowSpecificConstants,
+)
 from pyMoist.convection.GF_2020.cumulus_parameterization.field_types import FloatField_Plume, FloatFieldIJ_Ensemble, FloatFieldIJ_Plume, IntFieldIJ_Plume
 from pyMoist.convection.GF_2020.cumulus_parameterization.plume_dependent_constants import GF2020PlumeDependentConstants
 
@@ -170,7 +175,10 @@ def ensemble_forcing(
                     mass_flux_ensemble[0, 0][2] = max(0.0, -internal_mass_flux_ensemble[0, 0][2] / workfunction_diff_2)
 
                 if internal_mass_flux_ensemble[0, 0][15] > 0.0:
-                    mass_flux_ensemble[0, 0][15] = max(0.0, -internal_mass_flux_ensemble[0, 0][15] / workfunction_diff_2)
+                    mass_flux_ensemble[0, 0][15] = max(
+                        0.0,
+                        -internal_mass_flux_ensemble[0, 0][15] / workfunction_diff_2,
+                    )
             else:
                 internal_mass_flux_ensemble[0, 0][0] = 0.0
                 internal_mass_flux_ensemble[0, 0][1] = 0.0
@@ -300,7 +308,10 @@ def ensemble_forcing_mid_plume(
 
             # closures 3 and 4 for mid
             if workfunction_diff_1 < 0.0:
-                xff_mid[0, 0][2] = max(0.0, -(cloud_workfunction_1 / cape_removal_time_scale) / workfunction_diff_1)
+                xff_mid[0, 0][2] = max(
+                    0.0,
+                    -(cloud_workfunction_1 / cape_removal_time_scale) / workfunction_diff_1,
+                )
                 xff_mid[0, 0][3] = f_dicycle_modified
 
     with computation(FORWARD), interval(0, 1):
@@ -426,6 +437,9 @@ class LargeScaleForcing(NDSLRuntime):
             func=effective_precipitation,
             compute_dims=[I_DIM, J_DIM, K_DIM],
         )
+        self.shallow = ShallowSpecificConstants(cumulus_parameterization_config)
+        self.mid = MidSpecificConstants(cumulus_parameterization_config)
+        self.deep = DeepSpecificConstants(cumulus_parameterization_config)
 
     def __call__(
         self,
@@ -463,14 +477,28 @@ class LargeScaleForcing(NDSLRuntime):
         mass_flux_ensemble: Quantity,
         precipitation_ensemble: Quantity,
         xff_mid: Quantity,
-        plume_dependent_constants: GF2020PlumeDependentConstants,
+        plume: int,
     ):
+        if plume == 0:
+            constants_CLOSURE_CHOICE = self.shallow.CLOSURE_CHOICE
+        elif plume == 1:
+            constants_CLOSURE_CHOICE = self.mid.CLOSURE_CHOICE
+        else:
+            constants_CLOSURE_CHOICE = self.deep.CLOSURE_CHOICE
+
         # copy error codes
-        self._copy(field_in=error_code, field_out=error_code_2, plume=plume_dependent_constants.PLUME_INDEX)
-        self._copy(field_in=error_code, field_out=error_code_3, plume=plume_dependent_constants.PLUME_INDEX)
+        self._copy(
+            field_in=error_code,
+            field_out=error_code_2,
+            plume=plume,
+        )
+        self._copy(
+            field_in=error_code,
+            field_out=error_code_3,
+            plume=plume,
+        )
 
-        if plume_dependent_constants.PLUME_INDEX == cumulus_parameterization_constants.DEEP:
-
+        if plume == cumulus_parameterization_constants.DEEP:
             self.ensemble_forcing(
                 error_code=error_code,
                 error_code_2=error_code_2,
@@ -489,12 +517,11 @@ class LargeScaleForcing(NDSLRuntime):
                 mass_flux_ensemble=mass_flux_ensemble,
                 internal_mass_flux_ensemble=self._internal_mass_flux_ensemble,
                 precipitation_ensemble=precipitation_ensemble,
-                CLOSURE_CHOICE=plume_dependent_constants.CLOSURE_CHOICE,
-                plume=plume_dependent_constants.PLUME_INDEX,
+                CLOSURE_CHOICE=constants_CLOSURE_CHOICE,
+                plume=plume,
             )
 
-        if plume_dependent_constants.PLUME_INDEX == cumulus_parameterization_constants.MID:
-
+        if plume == cumulus_parameterization_constants.MID:
             self._ensemble_forcing_mid_plume(
                 error_code=error_code,
                 updraft_origin_level=updraft_origin_level,
@@ -513,16 +540,16 @@ class LargeScaleForcing(NDSLRuntime):
                 cloud_workfunction_1=cloud_workfunction_1,
                 cloud_workfunction_1_pbl=cloud_workfunction_1_pbl,
                 xff_mid=xff_mid,
-                CLOSURE_CHOICE=plume_dependent_constants.CLOSURE_CHOICE,
-                plume=plume_dependent_constants.PLUME_INDEX,
+                CLOSURE_CHOICE=constants_CLOSURE_CHOICE,
+                plume=plume,
             )
 
-        if plume_dependent_constants.PLUME_INDEX == cumulus_parameterization_constants.SHALLOW:
-            raise NotImplementedError(
-                "Shallow plume options not implemented in LargeScaleForcing, but you"
-                "should have been caught before getting here. Something is wrong with the config checker.,"
-                "Beware, more untested paths may be executing without warning."
-            )
+        # if plume == cumulus_parameterization_constants.SHALLOW:
+        #     raise NotImplementedError(
+        #         "Shallow plume options not implemented in LargeScaleForcing, but you"
+        #         "should have been caught before getting here. Something is wrong with the config checker.,"
+        #         "Beware, more untested paths may be executing without warning."
+        #     )
 
         self._effective_precipitation(
             error_code=error_code,
@@ -530,5 +557,5 @@ class LargeScaleForcing(NDSLRuntime):
             condensate_to_fall_forced=condensate_to_fall_forced,
             evaporate_in_downdraft_forced=evaporate_in_downdraft_forced,
             effective_condensate_to_fall_forced=effective_condensate_to_fall_forced,
-            plume=plume_dependent_constants.PLUME_INDEX,
+            plume=plume,
         )

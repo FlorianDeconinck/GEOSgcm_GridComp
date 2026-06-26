@@ -469,15 +469,28 @@ def output_workfunctions_and_precip_concentrations(
 
     with computation(PARALLEL), interval(...):
         if error_code[0, 0][plume] == 0 and K <= cloud_top_level[0, 0][plume] + 1:
-            fraction = liquid_fraction(updraft_column_temperature_forced, convection_fraction, surface_type, FRAC_MODIS)
+            fraction = liquid_fraction(
+                updraft_column_temperature_forced,
+                convection_fraction,
+                surface_type,
+                FRAC_MODIS,
+            )
             cloud_liquid = DT_MOIST * dcloudicedt[0, 0, 0][plume] * air_density * fraction
             cloud_ice = DT_MOIST * dcloudicedt[0, 0, 0][plume] * air_density * (1.0 - fraction)
 
             dnicedt[0, 0, 0][plume] = max(
                 0.0,
-                make_ice_number(cloud_ice, updraft_column_temperature_forced, RADIATIVE_EFFECTIVE_RADIUS) / air_density,
+                make_ice_number(
+                    cloud_ice,
+                    updraft_column_temperature_forced,
+                    RADIATIVE_EFFECTIVE_RADIUS,
+                )
+                / air_density,
             )
-            dnliquiddt[0, 0, 0][plume] = max(0.0, make_droplet_number(cloud_liquid, n_water_friendly_aerosols, G_RATIO) / air_density)
+            dnliquiddt[0, 0, 0][plume] = max(
+                0.0,
+                make_droplet_number(cloud_liquid, n_water_friendly_aerosols, G_RATIO) / air_density,
+            )
 
             # convert to tendencies
             dnicedt[0, 0, 0][plume] = dnicedt[0, 0, 0][plume] * (1 / DT_MOIST)  # unit [1/s]
@@ -504,7 +517,11 @@ class OutputWorkfunctionsAndPrecipConcentrations(NDSLRuntime):
         quantity_factory.update_data_dimensions({"RADIATIVE_EFFECTIVE_RADIUS_Table": len(RADIATIVE_EFFECTIVE_RADIUS)})
 
         self._G_RATIO = quantity_factory.from_array(np.array(G_RATIO, dtype=Float), ["G_RATIO_Table"], "n/a")
-        self._RADIATIVE_EFFECTIVE_RADIUS = quantity_factory.from_array(np.array(RADIATIVE_EFFECTIVE_RADIUS, dtype=Float), ["RADIATIVE_EFFECTIVE_RADIUS_Table"], "n/a")
+        self._RADIATIVE_EFFECTIVE_RADIUS = quantity_factory.from_array(
+            np.array(RADIATIVE_EFFECTIVE_RADIUS, dtype=Float),
+            ["RADIATIVE_EFFECTIVE_RADIUS_Table"],
+            "n/a",
+        )
 
         # construct stencils
         self._output_workfunctions_and_precip_concentrations = stencil_factory.from_dims_halo(
@@ -531,7 +548,7 @@ class OutputWorkfunctionsAndPrecipConcentrations(NDSLRuntime):
         dcloudicedt: Quantity,
         dnliquiddt: Quantity,
         dnicedt: Quantity,
-        plume_dependent_constants: GF2020PlumeDependentConstants,
+        plume: int,
     ):
         self._output_workfunctions_and_precip_concentrations(
             error_code=error_code,
@@ -549,7 +566,7 @@ class OutputWorkfunctionsAndPrecipConcentrations(NDSLRuntime):
             dnicedt=dnicedt,
             G_RATIO=self._G_RATIO,
             RADIATIVE_EFFECTIVE_RADIUS=self._RADIATIVE_EFFECTIVE_RADIUS,
-            plume=plume_dependent_constants.PLUME_INDEX,
+            plume=plume,
         )
 
 

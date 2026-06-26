@@ -79,11 +79,11 @@ def flag_computed_plumes_and_columns(
     # generate a mask (which has been initialized to zero in GF2020Setup) which flags only columns
     # which made it through the entire cumulus parameterization scheme at one or more plumes
     with computation(FORWARD), interval(0, 1):
-        plume = 0
-        while plume < cumulus_parameterization_constants.NUMBER_OF_PLUMES:
-            if error_code[0, 0][plume] == 0:
+        plume_loop = 0
+        while plume_loop < cumulus_parameterization_constants.NUMBER_OF_PLUMES:
+            if error_code[0, 0][plume_loop] == 0:
                 do_this_column = 1
-            plume += 1
+            plume_loop += 1
 
 
 def check_vapor_mixing_ratio(
@@ -1212,20 +1212,20 @@ class GF2020Finalize(NDSLRuntime):
         )
 
         # This is a workaround for our current config. @Charles: Can we do this for our runs for now?
-        for plume in range(3):
+        for plume_loop in range(3):
             # Only call the function if the current plume is enabled self._plume_status is fixed to
             # [shallow, mid, deep] order. This conditional ensures the correct is checked in plume_status
             # and the correct plume is written in the stencil even if the overarching data order changes
 
             # This is a workaround for our current config. @Charles: Can we do this for our runs for now?
-            if plume == 0:
+            if plume_loop == 0:
                 status = False
             else:
                 status = True
 
             if status:
                 self._feed_3d_model_from_plumes(
-                    plume=Int(plume),
+                    plume=Int(plume_loop),
                     do_this_column=locals.do_this_column,
                     dz=locals.derived_state.dz,
                     air_density=locals.derived_state.air_density,

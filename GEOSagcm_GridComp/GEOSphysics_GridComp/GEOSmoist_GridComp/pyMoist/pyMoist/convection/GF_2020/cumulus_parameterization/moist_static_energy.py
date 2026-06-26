@@ -263,7 +263,7 @@ class StaticControl(NDSLRuntime):
         add_buoyancy: Quantity,
         cloud_liquid_after_rain_forced: Quantity,
         d_buoyancy_modified: Quantity,
-        plume_dependent_constants: GF2020PlumeDependentConstants,
+        plume: int,
     ):
         self._moist_static_energy_inside_cloud(
             error_code=error_code,
@@ -281,7 +281,7 @@ class StaticControl(NDSLRuntime):
             t_excess=t_excess,
             add_buoyancy=add_buoyancy,
             cloud_liquid_after_rain_forced=cloud_liquid_after_rain_forced,
-            plume=plume_dependent_constants.PLUME_INDEX,
+            plume=plume,
         )
 
         self._get_buoyancy(
@@ -293,5 +293,5 @@ class StaticControl(NDSLRuntime):
             environment_saturation_moist_static_energy=environment_saturation_moist_static_energy_cloud_levels_modified,
             d_buoyancy=d_buoyancy_modified,
             error_code=error_code,
-            plume=plume_dependent_constants.PLUME_INDEX,
+            plume=plume,
         )

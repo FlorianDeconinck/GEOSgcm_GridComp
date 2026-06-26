@@ -94,7 +94,7 @@ def find_highest_moist_static_energy_level(
 
         if plume == cumulus_parameterization_constants.SHALLOW:
             # start at surface for shallow plume
-            start_level: IntFieldIJ = 0
+            start_level: IntFieldIJ = 0  # type: ignore
         else:
             # start above surface
             start_level: IntFieldIJ = 1  # type: ignore[no-redef]
@@ -855,7 +855,6 @@ class CloudTop:
         locals: GF2020CumulusParameterizationLocals,
         plume_dependent_constants: GF2020PlumeDependentConstants,
     ):
-
         if self.cumulus_parameterization_config.OVERSHOOT != 0:
             ndsl_log.warning(" GF2020 cumulus parameterization called CloudTop with " "untested OVERSHOOT option. Running untested code... proceed with caution")
 

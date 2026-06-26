@@ -551,7 +551,10 @@ class VerticalDiscretization(NDSLRuntime):
         self._convective_transport_of_water_vapor_and_condensates = stencil_factory.from_dims_halo(
             func=convective_transport_of_water_vapor_and_condensates,
             compute_dims=[I_DIM, J_DIM, K_DIM],
-            externals={"C1": config.C1, "USE_FCT": cumulus_parameterization_config.USE_FCT},
+            externals={
+                "C1": config.C1,
+                "USE_FCT": cumulus_parameterization_config.USE_FCT,
+            },
         )
 
     def __call__(
@@ -597,7 +600,7 @@ class VerticalDiscretization(NDSLRuntime):
         moist_static_energy_tendency_from_environmental_subsidence: Quantity,
         vapor_tendency_from_environmental_subsidence: Quantity,
         t_tendency_from_environmental_subsidence: Quantity,
-        plume_dependent_constants: GF2020PlumeDependentConstants,
+        plume: int,
     ):
         self._zero_tendencies(
             del_u_cloud_ensemble=del_u_cloud_ensemble,
@@ -612,7 +615,10 @@ class VerticalDiscretization(NDSLRuntime):
             t_tendency_from_environmental_subsidence=t_tendency_from_environmental_subsidence,
         )
 
-        if self.cumulus_parameterization_config.VERTICAL_DISCRETIZATION_OPTION in (0, 1):
+        if self.cumulus_parameterization_config.VERTICAL_DISCRETIZATION_OPTION in (
+            0,
+            1,
+        ):
             self._convective_transport_of_momentum(
                 error_code=error_code,
                 cloud_top_level=cloud_top_level,
@@ -638,7 +644,7 @@ class VerticalDiscretization(NDSLRuntime):
                 cc=self._cc,
                 ddu=self._ddu,
                 ddv=self._ddv,
-                plume=plume_dependent_constants.PLUME_INDEX,
+                plume=plume,
             )
 
         if self.cumulus_parameterization_config.VERTICAL_DISCRETIZATION_OPTION == 1:
@@ -649,7 +655,7 @@ class VerticalDiscretization(NDSLRuntime):
                 c=self._cc,
                 f=self._ddu,
                 error_code=error_code,
-                plume=plume_dependent_constants.PLUME_INDEX,
+                plume=plume,
             )
 
             self._update_after_tridiag(
@@ -658,7 +664,7 @@ class VerticalDiscretization(NDSLRuntime):
                 in_field=self._ddu,
                 out_field=del_u_cloud_ensemble,
                 wind=u,
-                plume=plume_dependent_constants.PLUME_INDEX,
+                plume=plume,
             )
 
             self._tridiag(
@@ -668,7 +674,7 @@ class VerticalDiscretization(NDSLRuntime):
                 c=self._cc,
                 f=self._ddv,
                 error_code=error_code,
-                plume=plume_dependent_constants.PLUME_INDEX,
+                plume=plume,
             )
 
             self._update_after_tridiag(
@@ -677,7 +683,7 @@ class VerticalDiscretization(NDSLRuntime):
                 in_field=self._ddv,
                 out_field=del_v_cloud_ensemble,
                 wind=v,
-                plume=plume_dependent_constants.PLUME_INDEX,
+                plume=plume,
             )
 
             self._convective_transport_of_mse_and_liquid_water(
@@ -695,7 +701,7 @@ class VerticalDiscretization(NDSLRuntime):
                 epsilon_forced=epsilon_forced,
                 del_moist_static_energy_cloud_ensemble=del_moist_static_energy_cloud_ensemble,
                 moist_static_energy_tendency_from_environmental_subsidence=moist_static_energy_tendency_from_environmental_subsidence,
-                plume=plume_dependent_constants.PLUME_INDEX,
+                plume=plume,
             )
 
             self._convective_transport_of_water_vapor_and_condensates(
@@ -719,5 +725,5 @@ class VerticalDiscretization(NDSLRuntime):
                 del_cloud_liquid_cloud_ensemble=del_cloud_liquid_cloud_ensemble,
                 del_vapor_cloud_ensemble=del_vapor_cloud_ensemble,
                 vapor_tendency_from_environmental_subsidence=vapor_tendency_from_environmental_subsidence,
-                plume=plume_dependent_constants.PLUME_INDEX,
+                plume=plume,
             )

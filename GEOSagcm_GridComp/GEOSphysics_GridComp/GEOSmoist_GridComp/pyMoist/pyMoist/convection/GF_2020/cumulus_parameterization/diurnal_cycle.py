@@ -6,7 +6,12 @@ from ndsl.dsl.typing import Float, FloatField, FloatFieldIJ, Int, IntFieldIJ
 
 import pyMoist.constants as constants
 from pyMoist.convection.GF_2020.config import GF2020Config
-from pyMoist.convection.GF_2020.cumulus_parameterization.config import GF2020CumulusParameterizationConfig
+from pyMoist.convection.GF_2020.cumulus_parameterization.config import (
+    DeepSpecificConstants,
+    GF2020CumulusParameterizationConfig,
+    MidSpecificConstants,
+    ShallowSpecificConstants,
+)
 from pyMoist.convection.GF_2020.cumulus_parameterization.field_types import IntFieldIJ_Plume
 from pyMoist.convection.GF_2020.cumulus_parameterization.plume_dependent_constants import GF2020PlumeDependentConstants
 from pyMoist.shared.atmos_recipes import sigma
@@ -189,6 +194,10 @@ class DiurnalCycle(NDSLRuntime):
         self._tau_ecmwf: Local = quantity_factory.zeros([I_DIM, J_DIM], "n/a")
         self._tau_bl: Local = quantity_factory.zeros([I_DIM, J_DIM], "n/a")
 
+        self.shallow = ShallowSpecificConstants(cumulus_parameterization_config)
+        self.mid = MidSpecificConstants(cumulus_parameterization_config)
+        self.deep = DeepSpecificConstants(cumulus_parameterization_config)
+
     def __call__(
         self,
         error_code: Quantity,
@@ -213,8 +222,18 @@ class DiurnalCycle(NDSLRuntime):
         pbl_time_scale_from_state: Quantity,
         cloud_work_function_1_pbl: Quantity,
         cloud_work_function_1_fa: Quantity,
-        plume_dependent_constants: GF2020PlumeDependentConstants,
+        plume: int,
     ):
+        if plume == 0:
+            constants_TAU_CAPE_REMOVAL = self.shallow.TAU_CAPE_REMOVAL
+            constants_T_STAR = self.shallow.T_STAR
+        elif plume == 1:
+            constants_TAU_CAPE_REMOVAL = self.mid.TAU_CAPE_REMOVAL
+            constants_T_STAR = self.mid.T_STAR
+        else:
+            constants_TAU_CAPE_REMOVAL = self.deep.TAU_CAPE_REMOVAL
+            constants_T_STAR = self.deep.T_STAR
+
         # Bechtold et al 2008 time-scale of cape removal
         self._set_time_scales(
             error_code=error_code,
@@ -231,8 +250,8 @@ class DiurnalCycle(NDSLRuntime):
             cape_removal_time_scale_from_state=cape_removal_time_scale_from_state,
             pbl_time_scale=pbl_time_scale,
             pbl_time_scale_from_state=pbl_time_scale_from_state,
-            TAU_CAPE_REMOVAL=plume_dependent_constants.TAU_CAPE_REMOVAL,
-            plume=plume_dependent_constants.PLUME_INDEX,
+            TAU_CAPE_REMOVAL=constants_TAU_CAPE_REMOVAL,
+            plume=plume,
         )
 
         if True:
@@ -248,7 +267,7 @@ class DiurnalCycle(NDSLRuntime):
                 vapor_forced=vapor_forced,
                 cloud_work_function_1_pbl=cloud_work_function_1_pbl,
                 cloud_work_function_1_fa=cloud_work_function_1_fa,
-                plume=plume_dependent_constants.PLUME_INDEX,
+                plume=plume,
             )
 
             # if self.cumulus_parameterization_config.DIURNAL_CYCLE == 6:
@@ -262,8 +281,8 @@ class DiurnalCycle(NDSLRuntime):
                 error_code=error_code,
                 pbl_time_scale=pbl_time_scale,
                 cloud_work_function_1_pbl=cloud_work_function_1_pbl,
-                T_STAR=plume_dependent_constants.T_STAR,
-                plume=plume_dependent_constants.PLUME_INDEX,
+                T_STAR=constants_T_STAR,
+                plume=plume,
             )
 
         # elif self.cumulus_parameterization_config.DIURNAL_CYCLE == 4:
