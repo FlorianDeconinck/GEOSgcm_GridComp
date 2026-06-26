@@ -5,6 +5,7 @@ from pyMoist.microphysics.GFDL_1M.config import GFDL1MConfig
 from pyMoist.microphysics.GFDL_1M.driver import GFDL1MDriver
 from pyMoist.microphysics.GFDL_1M.finalize import GFDL1MFinalize
 from pyMoist.microphysics.GFDL_1M.locals import GFDL1MLocals
+from pyMoist.microphysics.GFDL_1M.optimization import get_optimization_config
 from pyMoist.microphysics.GFDL_1M.PhaseChange import PhaseChange
 from pyMoist.microphysics.GFDL_1M.setup import GFDL1MSetup
 from pyMoist.microphysics.GFDL_1M.shared_stencils import (
@@ -46,7 +47,7 @@ class GFDL1M(NDSLRuntime):
         quantity_factory: QuantityFactory,
         config: GFDL1MConfig,
     ):
-        super().__init__(stencil_factory)
+        super().__init__(stencil_factory, get_optimization_config(stencil_factory))
 
         # Initialize saturation tables
         saturation_tables = get_saturation_vapor_pressure_table(stencil_factory)
@@ -117,11 +118,22 @@ class GFDL1M(NDSLRuntime):
             config=config,
             saturation_tables=saturation_tables,
         )
+        self._post_init_done = False
+
+    def post_init(self, do_radar_diagnostic: bool) -> None:
+        if self._post_init_done:
+            raise RuntimeError("pyMoist.GFDL_1M: post_init is called more than once.")
+        self._post_init_done = True
+
+        self._finalize.post_init(do_radar_diagnostic=do_radar_diagnostic)
 
     def __call__(
         self,
         state: GFDL1MState,
     ):
+        if not self._post_init_done:
+            raise RuntimeError("pyMoist.GFDL_1M: post_init wasn't called.")
+
         # miscellaneous setup for GFDL1M microphysics
         # compute additional inputs, prefill outputs, reset temporaries
         self._setup(

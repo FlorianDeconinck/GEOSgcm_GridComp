@@ -11,7 +11,14 @@ _f64 = np.float64
 _i32 = np.int32
 
 # Define number of tracers in UW
-EXPERIMENT_TRACERS = {"arm_97jul": 18, "arm_97jun": 18, "armtwp_ice": 18, "bomex": 18, "gcm-fp": 23}
+EXPERIMENT_TRACERS = {
+    "arm_97jul": 18,
+    "arm_97jun": 18,
+    "armtwp_ice": 18,
+    "bomex": 18,
+    "gcm-fp": 23,
+    "gcm-hbc": 40,
+}
 EXP_NAME = os.getenv("EXP_NAME", "")
 if EXP_NAME == "":
     raise ValueError(f"EXP_NAME env var is not set - experiment unknown. Options are {list(EXPERIMENT_TRACERS.keys())}")

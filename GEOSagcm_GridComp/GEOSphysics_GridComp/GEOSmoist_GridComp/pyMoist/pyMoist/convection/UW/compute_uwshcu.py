@@ -1,5 +1,5 @@
 import dace
-from ndsl import NDSLRuntime, QuantityFactory, StencilFactory
+from ndsl import NDSLRuntime, OptimizationConfig, QuantityFactory, StencilFactory
 from ndsl.constants import I_DIM, J_DIM, K_DIM, K_INTERFACE_DIM
 from ndsl.dsl.gt4py import BACKWARD, FORWARD, PARALLEL, K, computation, erfc, exp, float32, float64, int32, int64, interval, isnan, log, sqrt
 from ndsl.dsl.typing import Bool, BoolFieldIJ, FloatField, FloatFieldIJ, IntField, IntFieldIJ
@@ -6914,8 +6914,8 @@ def update_output_variables1(
         if not condensation:
             umf_out = umf_zint
 
-            if K < kinv:
-                umf_out = umf_zint.at(K=kinv - 1) * zifc0 / zifc0.at(K=kinv - 1)
+            if K <= kinv:
+                umf_out = umf_zint.at(K=kinv) * zifc0 / zifc0.at(K=kinv)
 
             cufrc_out = cufrc
             dcm_out = dcm
@@ -7407,7 +7407,8 @@ class ComputeUwshcuInv(NDSLRuntime):
             formulation: Saturation Formulation used for QSat.
         """
 
-        super().__init__(stencil_factory)
+        oconfig = OptimizationConfig(stree=OptimizationConfig.Tree(enabled=False))
+        super().__init__(stencil_factory, oconfig)
 
         self.config = config
         self.locals = UWLocals.make(self, quantity_factory)

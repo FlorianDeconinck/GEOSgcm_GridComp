@@ -8,10 +8,10 @@ from pyMoist.constants import NCNST
 from pyMoist.convection.UW import ComputeUwshcuInv, UWConfiguration, UWState
 from pyMoist.fortran import get_NDSL_physics
 from pyMoist.fortran.build_helper import StencilBackendCompilerOverride
+from pyMoist.fortran.cuda_profiler import TimedCUDAProfiler
 from pyMoist.fortran.managed_state import MAPLManagedState
 from pyMoist.fortran.memory_factory import MAPLMemoryRepository
 from pyMoist.fortran.moist_workarounds import MOIST_WORKAROUNDS
-from pyMoist.fortran.profiler import TimedCUDAProfiler
 
 
 class UWGEOSInterface(UserCode):
@@ -162,44 +162,23 @@ class UWGEOSInterface(UserCode):
         # CNV_FRC = MAPLPy.get_pointer("CNV_FRC", export_state, dtype=np.float32, alloc=True)
         # SRF_TYPE = MAPLPy.get_pointer("SRF_TYPE", export_state, dtype=np.float32, alloc=True)
 
-        debug = False
+        with TimedCUDAProfiler("UW", {}):
+            with TimedCUDAProfiler("UW - State copy", {}):
+                self._managed_state.fortran_to_ndsl()
+                safe_assign_array(
+                    self._managed_state.ndsl_state.input_output.CNV_Tracers.field[:],
+                    MOIST_WORKAROUNDS.CNV_Tracers().Q,
+                )
 
-        if not debug:
-            with TimedCUDAProfiler("UW", {}):
-                with TimedCUDAProfiler("UW - State copy", {}):
-                    self._managed_state.fortran_to_ndsl()
-                    safe_assign_array(
-                        self._managed_state.ndsl_state.input_output.CNV_Tracers.data[:],
-                        MOIST_WORKAROUNDS.CNV_Tracers().Q[:],
-                    )
+            with TimedCUDAProfiler("UW Numerics", {}):
+                self._uw(self._managed_state.ndsl_state)
 
-                with TimedCUDAProfiler("UW Numerics", {}):
-                    self._uw(self._managed_state.ndsl_state)
-
-                with TimedCUDAProfiler("UW - State copy-back", {}):
-                    safe_assign_array(
-                        MOIST_WORKAROUNDS.CNV_Tracers().Q[:],
-                        self._managed_state.ndsl_state.input_output.CNV_Tracers.data[:],
-                    )
-                    self._managed_state.ndsl_to_fortran()
-        else:
-            with TimedCUDAProfiler("UW", {}):
-                with TimedCUDAProfiler("UW - State copy", {}):
-                    self._managed_state.fortran_to_ndsl()
-                    safe_assign_array(
-                        self._managed_state.ndsl_state.input_output.CNV_Tracers.data[:],
-                        MOIST_WORKAROUNDS.CNV_Tracers().Q[:],
-                    )
-
-                with TimedCUDAProfiler("UW Numerics", {}):
-                    self._uw(self._managed_state.ndsl_state)
-
-                with TimedCUDAProfiler("UW - State copy-back", {}):
-                    safe_assign_array(
-                        MOIST_WORKAROUNDS.CNV_Tracers().Q[:],
-                        self._managed_state.ndsl_state.input_output.CNV_Tracers.data[:],
-                    )
-                    self._managed_state.ndsl_to_fortran()
+            with TimedCUDAProfiler("UW - State copy-back", {}):
+                safe_assign_array(
+                    MOIST_WORKAROUNDS.CNV_Tracers().Q,
+                    self._managed_state.ndsl_state.input_output.CNV_Tracers.field[:],
+                )
+                self._managed_state.ndsl_to_fortran()
 
     def finalize(self, mapl_state, import_state, export_state) -> None:
         self._managed_state.save_recorded()
