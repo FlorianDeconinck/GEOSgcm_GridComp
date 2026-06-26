@@ -1,4 +1,4 @@
-from ndsl import NDSLRuntime, QuantityFactory, StencilFactory
+from ndsl import NDSLRuntime, QuantityFactory, StencilFactory, OptimizationConfig
 
 from pyMoist.convection.GF_2020.config import GF2020Config
 from pyMoist.convection.GF_2020.cumulus_parameterization import (
@@ -45,7 +45,8 @@ class GF2020(NDSLRuntime):
             cumulus_parameterization_config (GF2020CumulusParameterizationConfig)
             saturation_tables (SaturationVaporPressureTable | None)
         """
-        super().__init__(stencil_factory)
+        oconfig = OptimizationConfig(stree=OptimizationConfig.Tree(enabled=False))
+        super().__init__(stencil_factory, oconfig)
 
         # make saturation tables visible at runtime
         if saturation_tables is None:
