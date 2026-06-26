@@ -772,7 +772,6 @@ def update_state_with_tendencies(
     vapor: FloatField,
     t: FloatField,
     p: FloatField,
-    p_kappa: FloatField,
     mass: FloatField,
     mass_flux_deep_updraft_detrained: FloatField,
     mass_flux_deep_updraft_interface: FloatField,
@@ -795,8 +794,6 @@ def update_state_with_tendencies(
     convective_liquid: FloatField,
     convective_ice: FloatField,
     convective_cloud_fraction: FloatField,
-    convective_rainwater_source: FloatField,
-    convective_precipitation_RAS: FloatField,
     esx: GlobalTable_saturation_tables,
     fraction_ice: FloatField,
 ):
@@ -814,7 +811,6 @@ def update_state_with_tendencies(
         vapor (FloatField)
         t (FloatField)
         p (FloatField)
-        p_kappa (FloatField)
         mass (FloatField)
         mass_flux_deep_updraft_detrained (FloatField)
         mass_flux_deep_updraft_interface (FloatField)
@@ -837,8 +833,6 @@ def update_state_with_tendencies(
         convective_liquid (FloatField)
         convective_ice (FloatField)
         convective_cloud_fraction (FloatField)
-        convective_rainwater_source (FloatField)
-        convective_precipitation_RAS (FloatField)
         ese (GlobalTable_saturation_tables)
         esx (GlobalTable_saturation_tables)
         fraction_ice (FloatField)
@@ -1315,7 +1309,6 @@ class GF2020Finalize(NDSLRuntime):
             vapor=state.vapor,
             t=state.t,
             p=locals.derived_state.p,
-            p_kappa=locals.derived_state.p_kappa,
             mass=locals.derived_state.mass,
             mass_flux_deep_updraft_detrained=state.mass_flux_deep_updraft_detrained,
             mass_flux_deep_updraft_interface=state.mass_flux_deep_updraft_interface,
@@ -1338,8 +1331,6 @@ class GF2020Finalize(NDSLRuntime):
             convective_liquid=state.convective_liquid,
             convective_ice=state.convective_ice,
             convective_cloud_fraction=state.convective_cloud_fraction,
-            convective_rainwater_source=state.convective_rainwater_source,
-            convective_precipitation_RAS=state.convective_precipitation_RAS,
             esx=self._esx,
             fraction_ice=self.fraction_ice,
         )
